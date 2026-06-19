@@ -4,6 +4,7 @@ import { fetchConversation, processConversation } from './api'
 import { isExporterAuthError } from './auth'
 import { getChatIdFromUrl, isSharePage } from './page'
 import { Menu } from './ui/Menu'
+import { logger } from './utils/logger'
 import { onloadSafe } from './utils/utils'
 
 import './i18n'
@@ -96,6 +97,7 @@ function main() {
             }
             catch (error) {
                 if (isExporterAuthError(error)) return
+                logger.error('Failed to inject message timestamps', { chatId, error })
                 throw error
             }
         })
