@@ -121,7 +121,7 @@ interface MessageMeta {
         type: 'stop' | 'interrupted' & (string & {})
     }
     is_complete?: boolean
-    model_slug?: ModelSlug & (string & {})
+    model_slug?: ModelSlug | (string & {})
     parent_id?: string
     timestamp_?: 'absolute' & (string & {})
     citations?: Citation[]
@@ -200,7 +200,7 @@ interface MultiModalAudioTranscription {
 export interface ConversationNodeMessage {
     author: {
         role: AuthorRole
-        name?: 'browser' | 'python' & (string & {})
+        name?: 'browser' | 'python' | (string & {})
         metadata: JsonValue
     }
     content: {
@@ -947,6 +947,7 @@ const ModelMapping: { [key in ModelSlug]: string } & { [key: string]: string } =
     'gpt-4': 'GPT-4',
     'gpt-4-browsing': 'GPT-4 (Browser)',
     'gpt-4o': 'GPT-4o',
+    'gemini': 'Gemini',
 
     // fuzzy matching
     'text-davinci-002': 'GPT-3.5',

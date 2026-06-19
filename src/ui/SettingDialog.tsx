@@ -3,10 +3,10 @@ import { useCallback, useEffect, useState } from 'preact/hooks'
 import { useTranslation } from 'react-i18next'
 import sanitize from 'sanitize-filename'
 import { authorizeApiKey, getExporterAuthStatus, issueApiKey, revokeApiKey } from '../auth'
-import { baseUrl } from '../constants'
 import { useTitle } from '../hooks/useTitle'
 import { LOCALES } from '../i18n'
 import { getChatIdFromUrl } from '../page'
+import { getConversationSource } from '../providers'
 import { getFileNameWithFormat } from '../utils/download'
 import { MINT_CHECKOUT_URL, openProCheckout } from '../utils/license'
 import { timestamp as _timestamp, dateStr, unixTimestampToISOString } from '../utils/utils'
@@ -53,7 +53,7 @@ export const SettingDialog: FC<SettingDialogProps> = ({
     const updateTime = now
     const preview = getFileNameWithFormat(format, '{ext}', { title, chatId, createTime, updateTime })
 
-    const source = `${baseUrl}/${chatId}`
+    const source = getConversationSource(chatId)
     const [authStatus, setAuthStatus] = useState<ExporterAuthStatus | null>(null)
     const [apiKeyInput, setApiKeyInput] = useState('')
     const [issuedApiKey, setIssuedApiKey] = useState('')

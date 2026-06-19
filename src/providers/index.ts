@@ -13,6 +13,7 @@
 import { chatgptProvider } from './chatgpt'
 import { claudeProvider } from './claude'
 import { geminiProvider } from './gemini'
+import { baseUrl } from '../constants'
 import type { Provider } from './types'
 
 export type {
@@ -24,6 +25,7 @@ export type {
     ConversationNodeMessage,
     ConversationResult,
     Provider,
+    ProviderFeatures,
 } from './types'
 export { chatgptProvider } from './chatgpt'
 export { claudeProvider } from './claude'
@@ -43,4 +45,15 @@ export const providers: Provider[] = [
  */
 export function getActiveProvider(host: string = location.host): Provider {
     return providers.find(provider => provider.matchHost(host)) ?? chatgptProvider
+}
+
+export function getProviderFeature(feature: keyof NonNullable<Provider['features']>, host: string = location.host): boolean {
+    const provider = getActiveProvider(host)
+    return provider.features?.[feature] ?? true
+}
+
+export function getConversationSource(id: string, host: string = location.host): string {
+    const provider = getActiveProvider(host)
+    if (provider.getConversationSource) return provider.getConversationSource(id)
+    return `${baseUrl}/c/${id}`
 }
