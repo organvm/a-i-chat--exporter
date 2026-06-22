@@ -207,7 +207,7 @@ export const SettingDialog: FC<SettingDialogProps> = ({
                                         id="proLicenseKey"
                                         type="password"
                                         autoComplete="off"
-                                        spellCheck={false}
+                                        spellcheck={false}
                                         value={licenseKey}
                                         placeholder={t('License Key Placeholder')}
                                         onChange={e => setLicenseKey(e.currentTarget.value)}
@@ -277,7 +277,7 @@ export const SettingDialog: FC<SettingDialogProps> = ({
                                             className="Input min-w-0 flex-1"
                                             type="password"
                                             autoComplete="off"
-                                            spellCheck={false}
+                                            spellcheck={false}
                                             value={apiKeyInput}
                                             placeholder={t('API Key Placeholder')}
                                             onChange={e => setApiKeyInput(e.currentTarget.value)}

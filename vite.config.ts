@@ -5,10 +5,6 @@ import packageJson from './package.json'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-    // https://github.com/lisonge/vite-plugin-monkey/issues/10#issuecomment-1207264978
-    esbuild: {
-        charset: 'utf8',
-    },
     plugins: [
         preact({
             devToolsEnabled: false,
@@ -73,16 +69,14 @@ export default defineConfig({
                     ['jszip', cdn.jsdelivr('JSZip', 'dist/jszip.min.js')],
                     ['html2canvas', cdn.jsdelivr('html2canvas', 'dist/html2canvas.min.js')],
                 ],
-                cssSideEffects() {
-                    return (e) => {
-                        const o = document.createElement('style')
-                        o.textContent = e
+                cssSideEffects: (e) => {
+                    const o = document.createElement('style')
+                    o.textContent = e
+                    document.head.append(o)
+                    setInterval(() => {
+                        if (o.isConnected) return
                         document.head.append(o)
-                        setInterval(() => {
-                            if (o.isConnected) return
-                            document.head.append(o)
-                        }, 300)
-                    }
+                    }, 300)
                 },
             },
             server: {

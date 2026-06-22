@@ -67,7 +67,7 @@ export const EXPORTER_PUBLIC_KEY_JWK: JsonWebKey | null = null
 
 const LEMON_SQUEEZY_VALIDATE_URL = 'https://api.lemonsqueezy.com/v1/licenses/validate'
 
-function base64UrlToBytes(input: string): Uint8Array {
+function base64UrlToBytes(input: string): Uint8Array<ArrayBuffer> {
     const normalized = input.replace(/-/g, '+').replace(/_/g, '/')
     const pad = normalized.length % 4 === 0 ? '' : '='.repeat(4 - (normalized.length % 4))
     const binary = atob(normalized + pad)
@@ -99,8 +99,8 @@ export function hasFeature(status: LicenseStatus | null | undefined, feature: st
  */
 export function decodeLicenseKey(key: string): {
     payload: LicensePayload
-    signature: Uint8Array
-    signedData: Uint8Array
+    signature: Uint8Array<ArrayBuffer>
+    signedData: Uint8Array<ArrayBuffer>
 } | null {
     if (!key || typeof key !== 'string') return null
 

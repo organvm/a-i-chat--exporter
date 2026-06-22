@@ -14,3 +14,13 @@ vi.stubGlobal('location', {
   origin: 'https://chatgpt.com',
   pathname: '/c/test-chat',
 });
+
+// jsdom is not used (test environment is `node`), so modules that touch the DOM
+// at import time — e.g. i18n.ts reading window.localStorage — need a stub.
+vi.stubGlobal('window', {
+  localStorage: {
+    getItem: () => null,
+    setItem: () => {},
+    removeItem: () => {},
+  },
+});
