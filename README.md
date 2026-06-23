@@ -119,10 +119,12 @@ Checkout is **sovereign**: the **Buy Pro** button opens [MONETA](https://mint.44
 
 ### Support / Sponsor
 
-If this project helps you, you can support maintenance here:
+If this project helps you, support is optional but appreciated:
 
 - **[GitHub Sponsors](https://github.com/sponsors/organvm)** (sponsor profile: `organvm`)
-- **[Ko-fi](https://ko-fi.com/4444j99)**
+- **[Ko-fi](https://ko-fi.com/4444j99)** — buy me a coffee
+
+Free usage and functionality are unchanged; sponsoring just helps keep maintenance and releases steady.
 
 ---
 
