@@ -50,12 +50,19 @@ pnpm run preview:site       # build + serve at http://localhost:8080
 
 ### Pro checkout configuration
 
-Set `VITE_LEMON_SQUEEZY_CHECKOUT_URL` at build time to enable the in-app **Buy
-Pro** button. The value should be the hosted Lemon Squeezy checkout URL for the
-one-time Pro product:
+Set `VITE_LEMONSQUEEZY_STORE_ID` at build time to enable the in-app **Buy Pro**
+button.
+
+`VITE_LEMONSQUEEZY_STORE_ID` can be either:
+
+- the full hosted Lemon Squeezy checkout URL (preferred)
+- a host/path fragment that resolves to the hosted checkout URL
+
+As a compatibility alias, `VITE_LEMON_SQUEEZY_CHECKOUT_URL` is also supported.
+If you pass a fragment (no protocol), it is normalized with `https://` at runtime.
 
 ```bash
-VITE_LEMON_SQUEEZY_CHECKOUT_URL="https://your-store.lemonsqueezy.com/buy/..." pnpm run build
+VITE_LEMONSQUEEZY_STORE_ID="https://your-store.lemonsqueezy.com/buy/..." pnpm run build
 ```
 
 When this value is empty, the Pro gate still verifies pasted license keys, but

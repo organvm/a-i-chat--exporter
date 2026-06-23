@@ -67,6 +67,23 @@ export const EXPORTER_PUBLIC_KEY_JWK: JsonWebKey | null = null
 
 const LEMON_SQUEEZY_VALIDATE_URL = 'https://api.lemonsqueezy.com/v1/licenses/validate'
 
+const LEMON_SQUEEZY_CHECKOUT_URL_INPUT =
+    (import.meta.env.VITE_LEMON_SQUEEZY_CHECKOUT_URL ?? '').trim()
+const LEMON_SQUEEZY_STORE_ID_INPUT =
+    (import.meta.env.VITE_LEMONSQUEEZY_STORE_ID ?? '').trim()
+
+function normalizeCheckoutInputUrl(value: string) {
+    const trimmed = value.trim()
+    if (!trimmed) return ''
+
+    if (/^https?:\/\//i.test(trimmed)) return trimmed
+    return `https://${trimmed}`
+}
+
+function resolveCheckoutUrl() {
+    return normalizeCheckoutInputUrl(LEMON_SQUEEZY_STORE_ID_INPUT || LEMON_SQUEEZY_CHECKOUT_URL_INPUT)
+}
+
 function base64UrlToBytes(input: string): Uint8Array<ArrayBuffer> {
     const normalized = input.replace(/-/g, '+').replace(/_/g, '/')
     const pad = normalized.length % 4 === 0 ? '' : '='.repeat(4 - (normalized.length % 4))
@@ -255,7 +272,7 @@ const CHECKOUT_RETURN_PARAM = 'ce_checkout_return'
 const CHECKOUT_SOURCE = 'chatgpt-exporter'
 
 /** Hosted Lemon Squeezy checkout URL, injected at build time. Empty disables checkout. */
-export const LEMON_SQUEEZY_CHECKOUT_URL = import.meta.env.VITE_LEMON_SQUEEZY_CHECKOUT_URL ?? ''
+export const LEMON_SQUEEZY_CHECKOUT_URL = resolveCheckoutUrl()
 
 /** Query/hash param names a Lemon Squeezy return redirect may carry the license key in. */
 export const LICENSE_PARAM_NAMES = [
