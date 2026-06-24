@@ -30,8 +30,7 @@ export class ApiError extends Error {
 
 export function isApiError(error: unknown): error is ApiError {
     return error instanceof ApiError
-        || (typeof error === 'object' && error !== null && 'name' in error
-            && (error as { name: unknown }).name === 'ApiError')
+        || (isRecord(error) && 'name' in error && error.name === 'ApiError')
 }
 
 /** Redact ids/tokens from a url so it is safe to put in logs. */
@@ -318,6 +317,15 @@ export interface ApiProjectInfo {
     // todo: support exporting project context
 }
 
+interface ApiProjectsResponse {
+    items: ApiGizmo[]
+}
+
+interface ApiProjectConversationsResponse {
+    items: ApiConversationItem[]
+    cursor?: number | null
+}
+
 interface ApiAccountsCheckAccountDetail {
     account_user_role: 'account-owner' | string
     account_user_id: string | null
@@ -421,7 +429,7 @@ export async function getCurrentChatId(): Promise<string> {
 
 async function fetchImageFromPointer(uri: string): Promise<string | null> {
     const pointer = uri.replace('file-service://', '')
-    const imageDetails = await fetchApi<ApiFileDownload>(fileDownloadApi(pointer))
+    const imageDetails = await fetchApi<ApiFileDownload>(fileDownloadApi(pointer), undefined, isApiFileDownload)
     if (imageDetails.status === 'error') {
         logger.error('Failed to fetch image asset', {
             errorCode: imageDetails.error_code,
@@ -438,7 +446,7 @@ async function fetchImageFromPointer(uri: string): Promise<string | null> {
 }
 
 function isRecord(value: unknown): value is Record<PropertyKey, unknown> {
-    return typeof value === 'object' && value !== null
+    return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
 function isFileServiceImageAssetPointer(part: unknown): part is MultiModalInputImage {
@@ -446,6 +454,109 @@ function isFileServiceImageAssetPointer(part: unknown): part is MultiModalInputI
         && part.content_type === 'image_asset_pointer'
         && typeof part.asset_pointer === 'string'
         && part.asset_pointer.startsWith('file-service://')
+}
+
+function isNonEmptyString(value: unknown): value is string {
+    return typeof value === 'string' && value.length > 0
+}
+
+function isStringArray(value: unknown): value is string[] {
+    return Array.isArray(value) && value.every(item => typeof item === 'string')
+}
+
+function isApiFileDownload(value: unknown): value is ApiFileDownload {
+    if (!isRecord(value) || typeof value.status !== 'string') return false
+    if (value.status === 'success') {
+        return typeof value.download_url === 'string'
+            && typeof value.file_name === 'string'
+            && isRecord(value.metadata)
+            && isNonEmptyString(value.creation_time)
+    }
+    if (value.status === 'error') {
+        return typeof value.error_code === 'string'
+            && (value.error_message === null || typeof value.error_message === 'string')
+    }
+    return false
+}
+
+function isApiConversationItem(value: unknown): value is ApiConversationItem {
+    return isRecord(value)
+        && typeof value.id === 'string'
+        && typeof value.title === 'string'
+        && typeof value.create_time === 'number'
+}
+
+function isApiConversations(value: unknown): value is ApiConversations {
+    return isRecord(value)
+        && typeof value.has_missing_conversations === 'boolean'
+        && typeof value.limit === 'number'
+        && typeof value.offset === 'number'
+        && (value.total === null || typeof value.total === 'number')
+        && Array.isArray(value.items)
+        && value.items.every(isApiConversationItem)
+}
+
+function isApiConversation(value: unknown): value is ApiConversation {
+    return isRecord(value)
+        && typeof value.create_time === 'number'
+        && typeof value.current_node === 'string'
+        && isRecord(value.mapping)
+        && Array.isArray(value.moderation_results)
+        && typeof value.title === 'string'
+        && typeof value.is_archived === 'boolean'
+        && typeof value.update_time === 'number'
+}
+
+function isApiProjectConversations(value: unknown): value is ApiProjectConversationsResponse {
+    return isRecord(value)
+        && Array.isArray(value.items)
+        && (value.cursor === undefined || value.cursor === null || typeof value.cursor === 'number')
+        && value.items.every(isApiConversationItem)
+}
+
+function isApiProjectsResponse(value: unknown): value is ApiProjectsResponse {
+    return isRecord(value)
+        && Array.isArray(value.items)
+        && value.items.every(isApiGizmo)
+}
+
+function isApiGizmo(value: unknown): value is ApiGizmo {
+    return isRecord(value)
+        && isRecord(value.gizmo)
+        && isRecord(value.gizmo.gizmo)
+        && typeof value.gizmo.gizmo.id === 'string'
+        && typeof value.gizmo.gizmo.organization_id === 'string'
+        && isRecord(value.gizmo.gizmo.display)
+        && typeof value.gizmo.gizmo.display.name === 'string'
+        && typeof value.gizmo.gizmo.display.description === 'string'
+}
+
+function isApiSession(value: unknown): value is ApiSession {
+    return isRecord(value)
+        && typeof value.accessToken === 'string'
+        && typeof value.authProvider === 'string'
+        && typeof value.expires === 'string'
+        && isRecord(value.user)
+        && typeof value.user.email === 'string'
+        && isStringArray(value.user.groups)
+        && typeof value.user.iat === 'number'
+        && typeof value.user.id === 'string'
+        && typeof value.user.idp === 'string'
+        && typeof value.user.image === 'string'
+        && typeof value.user.intercom_hash === 'string'
+        && typeof value.user.mfa === 'boolean'
+        && typeof value.user.name === 'string'
+        && typeof value.user.picture === 'string'
+}
+
+function isApiAccountsCheck(value: unknown): value is ApiAccountsCheck {
+    return isRecord(value)
+        && isRecord(value.accounts)
+        && isStringArray(value.account_ordering)
+}
+
+function isApiSuccessResponse(value: unknown): value is { success: boolean } {
+    return isRecord(value) && typeof value.success === 'boolean'
 }
 
 /** replaces `file-service://` pointers with data uris containing the image */
@@ -510,7 +621,7 @@ export async function fetchConversation(chatId: string, shouldReplaceAssets: boo
     }
 
     const url = conversationApi(validChatId)
-    const conversation = await fetchApi<ApiConversation>(url)
+    const conversation = await fetchApi<ApiConversation>(url, undefined, isApiConversation)
 
     if (shouldReplaceAssets) {
         await replaceImageAssets(conversation)
@@ -526,7 +637,7 @@ export async function fetchProjects(): Promise<ApiProjectInfo[]> {
     await requireExporterApiAuth()
 
     const url = projectsApi()
-    const { items } = await fetchApi<{ items: ApiGizmo[] }>(url)
+    const { items } = await fetchApi<ApiProjectsResponse>(url, undefined, isApiProjectsResponse)
     return items.map(gizmo => (gizmo.gizmo.gizmo))
 }
 
@@ -536,14 +647,14 @@ async function fetchConversations(offset = 0, limit = 20, project: string | null
     }
     assertValidPagination(offset, limit)
     const url = conversationsApi(offset, limit)
-    return fetchApi(url)
+    return fetchApi<ApiConversations>(url, undefined, isApiConversations)
 }
 
 async function fetchProjectConversations(project: string, offset = 0, limit = 20): Promise<ApiConversations> {
     assertValidChatId(project, 'project')
     assertValidPagination(offset, limit)
     const url = projectConversationsApi(project, offset, limit)
-    const { items } = await fetchApi< { items: ApiConversationItem[]; cursor: number | null }>(url)
+    const { items } = await fetchApi<ApiProjectConversationsResponse>(url, undefined, isApiProjectConversations)
     return {
         has_missing_conversations: false,
         items,
@@ -597,7 +708,7 @@ export async function archiveConversation(chatId: string): Promise<boolean> {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ is_archived: true }),
-    })
+    }, isApiSuccessResponse)
     return success
 }
 
@@ -609,11 +720,17 @@ export async function deleteConversation(chatId: string): Promise<boolean> {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ is_visible: false }),
-    })
+    }, isApiSuccessResponse)
     return success
 }
 
-async function fetchApi<T>(url: string, options?: RequestInit): Promise<T> {
+type ApiResponseValidator<T> = (value: unknown) => value is T
+
+async function fetchApi<T>(
+    url: string,
+    options?: RequestInit,
+    validate?: ApiResponseValidator<T>,
+): Promise<T> {
     await requireExporterApiAuth()
 
     assertValidRequestUrl(url, 'backend API url')
@@ -657,14 +774,64 @@ async function fetchApi<T>(url: string, options?: RequestInit): Promise<T> {
     }
 
     try {
-        return await response.json() as T
+        const payload = await response.json()
+        if (validate && !validate(payload)) {
+            logger.error('API response had unexpected shape', { method, url: safeUrl })
+            throw new ApiError('API response had an unexpected shape.', {
+                status: response.status,
+                statusText: response.statusText,
+                url: safeUrl,
+                method,
+            })
+        }
+        return payload as T
     }
     catch (error) {
+        if (error instanceof ApiError) {
+            throw error
+        }
         logger.error('API response was not valid JSON', { method, url: safeUrl, error })
         throw new ApiError('Response was not valid JSON.', {
             status: response.status,
             statusText: response.statusText,
             url: safeUrl,
+            method,
+        })
+    }
+}
+
+async function parseResponsePayload<T>(
+    response: Response,
+    validate: ApiResponseValidator<T>,
+    label: string,
+    method = 'GET',
+): Promise<T> {
+    try {
+        const payload = await response.json()
+        if (!validate(payload)) {
+            logger.error('Response payload failed schema check', {
+                label,
+                status: response.status,
+                statusText: response.statusText,
+                url: redactUrl(response.url),
+            })
+            throw new ApiError('Response did not match expected schema.', {
+                status: response.status,
+                statusText: response.statusText,
+                url: redactUrl(response.url),
+                method,
+            })
+        }
+        return payload
+    }
+    catch (error) {
+        if (error instanceof ApiError) {
+            throw error
+        }
+        throw new ApiError('Response was not valid JSON.', {
+            status: response.status,
+            statusText: response.statusText,
+            url: redactUrl(response.url),
             method,
         })
     }
@@ -695,9 +862,12 @@ async function _fetchSession(): Promise<ApiSession> {
     }
 
     try {
-        return await response.json() as ApiSession
+        return await parseResponsePayload(response, isApiSession, 'session')
     }
     catch (error) {
+        if (error instanceof ApiError) {
+            throw error
+        }
         logger.error('Session response was not valid JSON', { error })
         throw new ApiError('Session response was not valid JSON.', {
             status: response.status,
@@ -749,9 +919,12 @@ async function _fetchAccountsCheck(): Promise<ApiAccountsCheck> {
     }
 
     try {
-        return await response.json() as ApiAccountsCheck
+        return await parseResponsePayload(response, isApiAccountsCheck, 'accounts check')
     }
     catch (error) {
+        if (error instanceof ApiError) {
+            throw error
+        }
         logger.error('Accounts check response was not valid JSON', { error })
         throw new ApiError('Accounts check response was not valid JSON.', {
             status: response.status,
@@ -764,7 +937,7 @@ async function _fetchAccountsCheck(): Promise<ApiAccountsCheck> {
 
 const fetchAccountsCheck = memorize(_fetchAccountsCheck)
 
-const getCookie = (key: string): string => document.cookie.match(`(^|;)\\s*${key}\\s*=\\s*([^;]+)`)?.pop() || ''
+const getCookie = (key: ChatGPTCookie): string => document.cookie.match(`(^|;)\\s*${key}\\s*=\\s*([^;]+)`)?.pop() || ''
 
 export async function getTeamAccountId(): Promise<string | null> {
     const accountsCheck = await fetchAccountsCheck()
