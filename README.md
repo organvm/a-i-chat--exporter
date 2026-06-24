@@ -119,8 +119,10 @@ Checkout is **sovereign**: the **Buy Pro** button opens [MONETA](https://github.
 
 ### Support / Sponsor
 
-If ChatGPT Exporter helps you, you can support ongoing maintenance via:
+If this project helps you, you can support maintenance here:
+
 - **[GitHub Sponsors](https://github.com/sponsors/organvm)** (sponsor profile: `organvm`)
+- **[Ko-fi](https://ko-fi.com/4444j99)**
 
 ---
 
