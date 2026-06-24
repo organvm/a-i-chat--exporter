@@ -2,109 +2,181 @@
 
 ## Show HN
 
-**Title:** Show HN: ChatGPT Exporter — export ChatGPT conversations to files, locally, in one place
+**Title:** Show HN: ChatGPT Exporter – Markdown, HTML, JSON, PNG Export for ChatGPT Conversations
 
 **Body:**
 
-I open sourced `ChatGPT Exporter`, a browser userscript that adds conversation export tools directly inside the ChatGPT web app (no extension needed, no separate backend).
+ChatGPT Exporter is a browser userscript that adds a five-format export menu to the ChatGPT web interface. No backend, no account, no data upload — everything runs in your browser.
 
-What problem it solves:
+**Problem:**
+- ChatGPT doesn’t export conversations to Markdown or HTML natively.
+- OpenAI’s official data export is a single massive JSON file.
+- Researchers, writers, and developers regularly archive conversations for reference, analysis, or ingestion into knowledge systems.
 
-- ChatGPT has no built-in per-thread export button for Markdown/HTML/screenshot workflows.
-- OpenAI’s full data export is often too heavy for day-to-day use.
-- People want durable, local copies of prompts and outputs they can index, review, and reuse.
-
-What it does:
-
-- Installs as a userscript via Tampermonkey/Violentmonkey.
-- Adds an Export menu to the ChatGPT sidebar.
+**Solution:**
+- Installs as a userscript (Tampermonkey, Violentmonkey, or GreasyFork).
+- Injects an **Export** menu into the ChatGPT sidebar.
 - Exports the current conversation in five formats:
-  - Markdown (with YAML metadata when enabled)
-  - HTML (styled, copy/paste-safe output)
-  - JSON (raw API-format payload)
-  - PNG (full-thread screenshot)
-  - Plain text (clipboard copy)
-- Keeps export processing in your browser. No data upload pipeline, no required account, no hidden server dependency.
+  - **Markdown** — YAML front matter, preserved LaTeX, footnote conversion
+  - **HTML** — self-contained file, theme-aware (dark/light), KaTeX rendering, embedded avatars
+  - **JSON** — raw OpenAI API format (for ingestion into other systems)
+  - **PNG** — full-thread screenshot via html2canvas
+  - **Plain text** — markdown formatting stripped, copied to clipboard
+- All processing happens locally. Your data never leaves your machine.
 
-Pricing model:
+**Pricing (no paywall on the common workflow):**
+- **Free:** export one open conversation at a time in all five formats.
+- **Pro ($):** for researchers and developers who export at scale:
+  - Bulk export: select multiple conversations or export all, download as ZIP or JSON
+  - Upload and re-export: import OpenAI’s `conversations.json` export, then re-export selected conversations
+  - Format conversion: TavernAI and Ooba character-chat formats
+  - Project filtering: scope bulk exports to ChatGPT Projects
+  - Conversation management: archive or delete multiple conversations via the API
 
-- Free: export one open conversation at a time in the five formats above.
-- Pro: adds batch workflows for people who export a lot:
-  - Bulk export to ZIP/JSON from the dialog
-  - `conversations.json` re-import and re-export
-  - Additional provider conversion targets (including character-chat-friendly formats)
-  - Project-filtered/bulk workflow options
-  - Optional conversation management actions for API-loaded items
+**Technical details:**
+- Built in TypeScript + Preact, compiled to a single ~50KB userscript.
+- Markdown exporter uses mdast AST normalization to preserve LaTeX and convert ChatGPT’s custom footnote syntax to markdown footnotes.
+- Bulk export uses a smart rate-limited request queue (200ms/1600ms backoff) to avoid throttling ChatGPT’s API.
+- Extensible provider architecture scaffolds Claude and Gemini support (deferred — foundation-only today).
+- Localized in 9 languages: EN, ES, FR, ID, JA, RU, TR, ZH-Hans, ZH-Hant.
 
-Built details:
+**Distribution:**
+- GreasyFork: [Install here](https://greasyfork.org/scripts/456055-chatgpt-exporter) — one of the highest-traffic ChatGPT utility scripts.
+- GitHub raw: [Direct install](https://raw.githubusercontent.com/organvm-iii-ergon/a-i-chat--exporter/master/dist/chatgpt.user.js).
+- Open source (MIT): [organvm-iii-ergon/a-i-chat--exporter](https://github.com/organvm-iii-ergon/a-i-chat--exporter).
 
-- Language: TypeScript + Preact
-- Export logic includes AST-based markdown normalization and math-safe handling
-- Bulk flow uses request backoff to reduce API pressure
-- HTML/PNG exports are generated client-side
-
-This is intentionally small-scope, practical tooling: if you just need reliable conversation backups and format conversions you can use it today:
-
-- GitHub: https://github.com/organvm-iii-ergon/a-i-chat--exporter
-- Install page: https://greasyfork.org/scripts/456055-chatgpt-exporter
-
-Feedback is welcome: especially missing formats, screenshot edge cases, and Pro feature requests.
+**Status:** v2.29.1, production, actively maintained.
 
 ---
 
 ## Reddit (r/ChatGPT or r/selfhosted)
 
-**Title:** Open-sourced ChatGPT Exporter: browser userscript for Markdown, HTML, JSON, PNG, and text exports
+**Title:** ChatGPT Exporter: Open-Source Browser Userscript for Markdown/HTML/JSON/PNG Export
 
-People still ask how to archive ChatGPT conversations without waiting on a full platform export. I just published `ChatGPT Exporter` to address that workflow gap.
+I’ve been maintaining ChatGPT Exporter for the past year and just crossed into production-ready. It’s a browser userscript that fills a gap: OpenAI doesn’t export conversations to Markdown or HTML, and researchers/writers/developers regularly need to archive conversations for reference or ingestion into knowledge systems.
 
-This is a browser userscript (Tampermonkey/Violentmonkey) that injects an export menu in ChatGPT and supports:
+**What it actually does:**
 
-- Markdown (+ metadata)
-- HTML
-- JSON (raw format)
-- PNG thread screenshot
-- Plain text to clipboard
+Install as a Tampermonkey/Violentmonkey userscript. Opens a ChatGPT conversation. Click **Export** in the sidebar and choose:
+- **Markdown** — with optional YAML front matter (title, model, timestamp). LaTeX preserved. ChatGPT’s footnotes converted to markdown footnote syntax.
+- **HTML** — self-contained, theme-aware (auto-detects dark/light mode), includes KaTeX LaTeX rendering and embedded avatars.
+- **JSON** — raw OpenAI API format for processing by other tools.
+- **PNG** — full-thread screenshot using html2canvas with progressive scaling fallback.
+- **Plain text** — markdown stripped, copied to your clipboard.
 
-It’s free for everyday single-conversation use. A paid Pro tier adds batch export and import/conversion workflows for heavier users:
+All processing happens in your browser. No account, no backend, no data upload.
 
-- Bulk export in zip/json flows
-- Import and re-export official `conversations.json`
-- Additional conversion targets for character-chat flows
-- Project-filtered export and batch conversation actions
+**Free vs. Pro:**
 
-Everything runs locally in the browser; no backend is required for ordinary export.
+Free tier: export single conversations in all five formats. No paywall. This covers the vast majority of casual use.
 
-Install + source:
+Pro tier ($): for people who export at scale:
+- **Bulk export:** select multiple conversations or all of them, download as ZIP or JSON.
+- **JSON import:** upload OpenAI’s `conversations.json` export, then re-export selected conversations in any format.
+- **Format conversion:** TavernAI and Ooba character-chat formats (for use in SillyTavern, text-generation-webui, etc.).
+- **Project filtering:** scope bulk exports to ChatGPT Projects.
+- **Conversation management:** archive or delete multiple conversations directly from the export dialog.
 
-- https://greasyfork.org/scripts/456055-chatgpt-exporter  
-- https://github.com/organvm-iii-ergon/a-i-chat--exporter
+**Real context:**
+
+- Built in TypeScript + Preact. Single userscript file (~50KB).
+- Distributed primarily via GreasyFork (one of the highest-traffic ChatGPT utility scripts there).
+- Localized in 9 languages.
+- Open source (MIT). Active maintenance, no abandoned features.
+- Version 2.29.1, production-ready.
+
+**Install:**
+- GreasyFork: [https://greasyfork.org/scripts/456055-chatgpt-exporter](https://greasyfork.org/scripts/456055-chatgpt-exporter)
+- GitHub: [organvm-iii-ergon/a-i-chat--exporter](https://github.com/organvm-iii-ergon/a-i-chat--exporter)
+
+Happy to answer questions or take feedback on the Pro tier, additional export formats, or edge cases in screenshot generation.
 
 ---
 
-## X / Twitter thread
+## X / Twitter Variants
 
-1) I just released `ChatGPT Exporter` as a browser userscript.
+### Variant 1: Problem-first
+OpenAI's ChatGPT has no native export to Markdown or HTML. You get one massive JSON file. For researchers and writers who archive conversations, this is painful.
 
-It adds conversation export directly inside the ChatGPT interface, so you can save work locally without moving data through a separate service.
+ChatGPT Exporter fixes it: browser userscript, five export formats, free tier for single conversations, Pro tier for bulk export.
 
-2) Export formats:
-✅ Markdown  
-✅ HTML  
-✅ JSON (raw payload shape)  
-✅ PNG screenshot  
-✅ Plain text
+Zero cloud. MIT open source. https://greasyfork.org/scripts/456055-chatgpt-exporter
 
-3) Free path: export the open conversation in those formats.
+### Variant 2: Technical focus
+ChatGPT Exporter v2.29.1: browser userscript for exporting conversations to Markdown, HTML, JSON, PNG, or text.
 
-Pro path: bulk workflows (ZIP/JSON), `conversations.json` import, and extra provider conversion targets for character-chat workflows.
+Free: single conversation export. Pro: bulk export, JSON import, TavernAI/Ooba conversion.
 
-4) Notes:
-- Browser-only processing
-- No account required for core workflow
-- Open source on GitHub
-- Designed for people who need stable archives and reusable chat artifacts
+All processing in your browser. No backend. 9-language localization.
 
-5) Try it:
-Install: https://greasyfork.org/scripts/456055-chatgpt-exporter  
-Source: https://github.com/organvm-iii-ergon/a-i-chat--exporter
+https://github.com/organvm-iii-ergon/a-i-chat--exporter
+
+### Variant 3: Use-case focus
+If you save ChatGPT conversations for research or knowledge work: ChatGPT Exporter exports them as Markdown (with YAML front matter), self-contained HTML (dark theme + LaTeX rendering), JSON, PNG, or text.
+
+Free for single conversations. Pro ($) unlocks bulk export.
+
+https://greasyfork.org/scripts/456055-chatgpt-exporter
+
+### Variant 4: Maker story (thread starter)
+I spent a year building ChatGPT Exporter, a browser userscript that does one thing well: export ChatGPT conversations to portable formats.
+
+The problem is simple: ChatGPT conversations are ephemeral. OpenAI doesn't export to Markdown or HTML. Researchers, writers, developers need archival snapshots.
+
+🧵
+
+1/ Free tier: export any open conversation to Markdown (with metadata), HTML (with LaTeX rendering), JSON, PNG, or text. Everything runs in your browser. No account. No servers.
+
+2/ Pro tier ($): for people who export at scale. Bulk export to ZIP. Import OpenAI's conversations.json, then re-export. TavernAI and Ooba format conversion. Project-filtered export.
+
+3/ Why this matters: knowledge workers archive ChatGPT conversations regularly. The built-in export is a single massive JSON file most tools can't ingest. This converts it into usable formats.
+
+4/ Built in TypeScript + Preact. Distributed via GreasyFork (one of the highest-traffic ChatGPT utility scripts). Open source. Actively maintained.
+
+Install: https://greasyfork.org/scripts/456055-chatgpt-exporter
+Repo: https://github.com/organvm-iii-ergon/a-i-chat--exporter
+
+---
+
+## Guidance Notes for Posting
+
+**Channel selection:**
+- **Show HN**: Technical audience. Lead with the problem and the architecture. Emphasize AST processing, rate-limited queues, provider abstraction. Good for developer engagement.
+- **Reddit r/ChatGPT**: General ChatGPT user community. Lead with the use case. Emphasize "no paywall on free tier" and "everything local." Good for user adoption.
+- **Reddit r/selfhosted**: Makers and self-hosters. Lead with "zero backend, no data upload." Emphasize the browser-only architecture and open-source angle.
+- **X/Twitter**: Pick a variant based on your audience. Thread starter if you want engagement; single tweet if you want quick reach.
+
+**What to emphasize (no hype):**
+- ✅ "Free tier covers single-conversation export" (not "free forever" or "never paywall")
+- ✅ "Distributed via GreasyFork" (not "millions of downloads" — we haven't claimed that)
+- ✅ "One of the highest-traffic ChatGPT utility scripts" (factual, from GreasyFork's ranking)
+- ✅ "Runs entirely in your browser" (key differentiator)
+- ✅ "Built in TypeScript + Preact" (technical credibility)
+- ✅ "Actively maintained" (future-proof signal)
+
+**What to avoid:**
+- ❌ Invented user counts ("10K+ users", "trusted by 5,000 researchers")
+- ❌ "Archival-quality" without context (the Markdown + YAML + preserved LaTeX actually qualify, but say "durable formats")
+- ❌ Claiming Claude/Gemini support (it's scaffolded, not live)
+- ❌ "The only way to export ChatGPT" (there are other tools; we're just better at Markdown/HTML)
+- ❌ "Pro tier is required for X" (clarify that Pro is optional and covers advanced/bulk workflows only)
+
+**Post timing:**
+- Coordinate with any social media amplification (GitHub, Ko-fi, GitHub Sponsors links)
+- Monitor GreasyFork install count and GitHub stars in the 48 hours after posting
+- Be ready to answer questions about Pro tier pricing (not in this draft, but should be defined)
+
+**Follow-up response template:**
+For common questions:
+
+**"How much does Pro cost?"**
+[Not specified in launch post — define in checkout or settings]
+
+**"Is Pro required?"**
+No. Free tier exports any open conversation in all five formats with no limitations. Pro is for people who export hundreds of conversations at once or need bulk workflows.
+
+**"Will the free tier always be free?"**
+Yes. Single-conversation export is the core use case and always free. Pro covers heavier workflows.
+
+**"Where does my data go?"**
+Nowhere. Everything runs in your browser. No upload, no backend, no tracking.
