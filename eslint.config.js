@@ -5,7 +5,7 @@ import tseslint from 'typescript-eslint'
 // Lean flat config for this Preact userscript. The old generic React template
 // imported undeclared packages and the unused @pionxzh config is not ESLint 10 ready.
 export default tseslint.config(
-    { ignores: ['dist', 'dist-site', 'node_modules', '**/*.user.js', 'scripts/**', 'mint'] },
+    { ignores: ['dist', 'dist-site', 'node_modules', '**/*.user.js', 'scripts/**'] },
     js.configs.recommended,
     ...tseslint.configs.recommended,
     {
