@@ -40,7 +40,7 @@ For heavier workflows, there is a gated Pro path:
 - Archive/delete actions on API-loaded conversations
 - Export format conversion into TavernAI / Ooba JSON formats
 
-This is implemented as a single TypeScript + Preact userscript built with Vite and `vite-plugin-monkey`, plus format modules (`src/exporter/`) and a client-side request queue for API rate safety.
+This is implemented as a single TypeScript + Preact userscript (~870KB bundled; JSZip and html2canvas load from jsDelivr CDN at runtime) built with Vite and `vite-plugin-monkey`, plus format modules (`src/exporter/`) and a client-side request queue for API rate safety.
 
 If you already keep research, coding notes, or customer-support transcripts in ChatGPT, this is meant to be boringly practical: get the data out in a useful shape, on your machine, without account handoffs.
 
