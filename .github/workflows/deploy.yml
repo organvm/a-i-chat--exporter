@@ -31,6 +31,8 @@ jobs:
       - run: pnpm install --no-frozen-lockfile
       - name: Build static site
         run: pnpm run site:build
+        env:
+          LEMONSQUEEZY_STORE_ID: ${{ secrets.LEMONSQUEEZY_STORE_ID }}
       - uses: actions/upload-artifact@v7
         with:
           name: chatgpt-exporter-site
@@ -88,5 +90,7 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}:latest
             ghcr.io/${{ github.repository }}:${{ github.sha }}
+          build-args: |
+            LEMONSQUEEZY_STORE_ID=${{ secrets.LEMONSQUEEZY_STORE_ID }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
