@@ -5,6 +5,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        LEMONSQUEEZY_STORE_ID: ${LEMONSQUEEZY_STORE_ID:-}
     image: chatgpt-exporter:local
     container_name: chatgpt-exporter
     ports:

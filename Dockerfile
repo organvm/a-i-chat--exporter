@@ -17,6 +17,8 @@ RUN pnpm install --frozen-lockfile
 
 # Build the userscript and assemble dist-site/.
 COPY . .
+ARG LEMONSQUEEZY_STORE_ID
+ENV LEMONSQUEEZY_STORE_ID=$LEMONSQUEEZY_STORE_ID
 RUN pnpm run site:build
 
 # ---- Stage 2: runtime ----
