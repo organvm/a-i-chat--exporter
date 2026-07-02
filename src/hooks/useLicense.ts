@@ -5,9 +5,9 @@ import { useGMStorage } from './useGMStorage'
 import type { LicenseStatus } from '../utils/license'
 
 /**
- * Reads the stored licence key, verifies it (offline signed-key check first,
- * falling back to the Lemon Squeezy API), and exposes the resulting Pro status.
- * Fails closed: while verifying, or on any error, the user stays on the free tier.
+ * Reads the stored licence key, verifies it offline against MONETA's embedded
+ * public key (no processor, no network call), and exposes the resulting Pro
+ * status. Fails closed: while verifying, or on any error, the user stays free.
  */
 export function useLicense() {
     const [licenseKey, setLicenseKey] = useGMStorage(KEY_PRO_LICENSE_KEY, '')
@@ -30,7 +30,7 @@ export function useLicense() {
         }
 
         setVerifying(true)
-        verifyLicense(licenseKey, { online: true })
+        verifyLicense(licenseKey)
             .then((result) => { if (!cancelled) setStatus(result) })
             .catch(() => { if (!cancelled) setStatus(FREE_STATUS) }) // fail closed
             .finally(() => { if (!cancelled) setVerifying(false) })

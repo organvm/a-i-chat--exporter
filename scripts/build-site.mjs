@@ -23,10 +23,11 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const userscript = join(root, 'dist', 'chatgpt.user.js')
 const outDir = join(root, 'dist-site')
 const forceBuild = process.argv.includes('--build')
+// The landing page's Buy Pro CTA points at MONETA's own checkout page — the
+// seller's sovereign Bitcoin mint, no third-party processor.
 const proCheckoutUrl = normalizeCheckoutInputUrl(
-  process.env.LEMONSQUEEZY_STORE_ID
-  || process.env.VITE_LEMONSQUEEZY_STORE_ID
-  || process.env.VITE_LEMON_SQUEEZY_CHECKOUT_URL
+  process.env.MINT_CHECKOUT_URL
+  || process.env.VITE_MINT_CHECKOUT_URL
   || '',
 )
 

@@ -8,7 +8,7 @@ import { useTitle } from '../hooks/useTitle'
 import { LOCALES } from '../i18n'
 import { getChatIdFromUrl } from '../page'
 import { getFileNameWithFormat } from '../utils/download'
-import { LEMON_SQUEEZY_CHECKOUT_URL, openProCheckout } from '../utils/license'
+import { MINT_CHECKOUT_URL, openProCheckout } from '../utils/license'
 import { timestamp as _timestamp, dateStr, unixTimestampToISOString } from '../utils/utils'
 import { IconCross, IconTrash } from './Icons'
 import { useSettingContext } from './SettingContext'
@@ -226,7 +226,7 @@ export const SettingDialog: FC<SettingDialogProps> = ({
                                             onClick={() => {
                                                 if (!openProCheckout()) alert(t('Checkout Not Configured'))
                                             }}
-                                            disabled={!LEMON_SQUEEZY_CHECKOUT_URL}
+                                            disabled={!MINT_CHECKOUT_URL}
                                         >
                                             {t('Buy Pro')}
                                         </button>

@@ -32,7 +32,8 @@ jobs:
       - name: Build static site
         run: pnpm run site:build
         env:
-          LEMONSQUEEZY_STORE_ID: ${{ secrets.LEMONSQUEEZY_STORE_ID }}
+          MINT_CHECKOUT_URL: ${{ secrets.MINT_CHECKOUT_URL }}
+          MINT_PUBLIC_JWK: ${{ secrets.MINT_PUBLIC_JWK }}
       - uses: actions/upload-artifact@v7
         with:
           name: chatgpt-exporter-site
@@ -91,6 +92,7 @@ jobs:
             ghcr.io/${{ github.repository }}:latest
             ghcr.io/${{ github.repository }}:${{ github.sha }}
           build-args: |
-            LEMONSQUEEZY_STORE_ID=${{ secrets.LEMONSQUEEZY_STORE_ID }}
+            MINT_CHECKOUT_URL=${{ secrets.MINT_CHECKOUT_URL }}
+            MINT_PUBLIC_JWK=${{ secrets.MINT_PUBLIC_JWK }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

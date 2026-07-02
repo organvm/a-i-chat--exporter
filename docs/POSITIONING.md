@@ -41,7 +41,7 @@ Two distinct high-ticket buyers, served by the **same proof** — this repositor
 
 We do not negotiate down and we do not do Fiverr-style gigs. The engagement starts serious because the artifact is serious.
 
-- **It is live, not a mock.** A shipping userscript distributed on GreasyFork as one of the highest-traffic ChatGPT utilities, with a real Pro tier gated by signed-key / Lemon Squeezy validation that **fails closed**.
+- **It is live, not a mock.** A shipping userscript distributed on GreasyFork as one of the highest-traffic ChatGPT utilities, with a real Pro tier gated by an offline MONETA-signed key (sovereign Bitcoin mint, no processor) that **fails closed**.
 - **It is hard-won engineering.** Reverse-engineered internal API access, a branching-tree conversation model linearized for export, LaTeX-safe Markdown via placeholder substitution and AST normalization, self-contained HTML with KaTeX, full-thread PNG capture with progressive canvas-limit fallback, and a rate-limited request queue ([`src/utils/queue.ts`](../src/utils/queue.ts)).
 - **It is durable under change.** A provider abstraction ([`src/providers/`](../src/providers)) lets the same exporters serve ChatGPT today and Claude/Gemini next — the mark of architecture, not a one-off.
 - **Scarcity.** Engineers who can hold reverse-engineering, resilient client-side data extraction, payment/license gating, and product polish in one head are rare. The production weight of the work is the price signal — no negotiation required.

@@ -17,8 +17,12 @@ RUN pnpm install --frozen-lockfile
 
 # Build the userscript and assemble dist-site/.
 COPY . .
-ARG LEMONSQUEEZY_STORE_ID
-ENV LEMONSQUEEZY_STORE_ID=$LEMONSQUEEZY_STORE_ID
+# Sovereign checkout: MONETA's own checkout-page URL + its public verify key.
+# Both are PUBLIC values injected at build time (no secret in the image).
+ARG MINT_CHECKOUT_URL
+ARG MINT_PUBLIC_JWK
+ENV MINT_CHECKOUT_URL=$MINT_CHECKOUT_URL
+ENV MINT_PUBLIC_JWK=$MINT_PUBLIC_JWK
 RUN pnpm run site:build
 
 # ---- Stage 2: runtime ----
