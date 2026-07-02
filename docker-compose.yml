@@ -6,7 +6,8 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        LEMONSQUEEZY_STORE_ID: ${LEMONSQUEEZY_STORE_ID:-}
+        MINT_CHECKOUT_URL: ${MINT_CHECKOUT_URL:-}
+        MINT_PUBLIC_JWK: ${MINT_PUBLIC_JWK:-}
     image: chatgpt-exporter:local
     container_name: chatgpt-exporter
     ports:

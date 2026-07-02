@@ -53,7 +53,7 @@ export function hasLicenseKey(licenseKey: string) {
 
 /**
  * Gate a Pro feature against a *verified* license status. A key must pass
- * signed-key / Lemon Squeezy verification (see `utils/license`) and actually
+ * offline MONETA signed-key verification (see `utils/license`) and actually
  * grant the requested feature — a merely-present key does not unlock anything.
  */
 export function checkLicenseGate(

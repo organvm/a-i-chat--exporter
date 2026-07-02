@@ -10,7 +10,7 @@ To authenticate with the API, you must provide your Pro License Key via the `Aut
 Authorization: Bearer YOUR_PRO_LICENSE_KEY
 ```
 
-> **Note:** The API is exclusively available to AI Chat Exporter Pro customers. If you do not have a license, you can purchase one at [aichatexporter.com/pro](https://aichatexporter.com/pro).
+> **Note:** The API is exclusively available to Pro customers. A Pro licence is bought through the in-app **Buy Pro** button, which runs [MONETA](https://github.com/organvm/limen/tree/main/moneta) — the seller's own Bitcoin licence mint (no third-party processor).
 
 ## Endpoints
 

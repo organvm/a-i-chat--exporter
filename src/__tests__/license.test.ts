@@ -12,7 +12,6 @@ import {
     hasFeature,
     isProUnlocked,
     maskLicense,
-    validateWithLemonSqueezy,
     verifyLicense,
     verifySignedLicense,
 } from '../utils/license'
@@ -173,87 +172,26 @@ describe('verifySignedLicense (offline)', () => {
     })
 })
 
-describe('validateWithLemonSqueezy (online)', () => {
-    const okResponse = (body: unknown): typeof fetch => (async () => ({
-        ok: true,
-        status: 200,
-        json: async () => body,
-    })) as unknown as typeof fetch
-
-    it('unlocks pro for an active license', async () => {
-        const fetchImpl = okResponse({
-            valid: true,
-            license_key: { status: 'active' },
-            meta: { customer_email: 'a@b.com' },
-        })
-        const status = await validateWithLemonSqueezy('REAL-KEY', { fetchImpl })
-        expect(status.valid).toBe(true)
-        expect(status.tier).toBe('pro')
-        expect(status.payload?.sub).toBe('a@b.com')
-    })
-
-    it('fails closed for an inactive/invalid license', async () => {
-        const fetchImpl = okResponse({ valid: false, license_key: { status: 'expired' } })
-        const status = await validateWithLemonSqueezy('BAD-KEY', { fetchImpl })
-        expect(status.valid).toBe(false)
-        expect(status.reason).toBe('inactive')
-    })
-
-    it('fails closed on a non-2xx response', async () => {
-        const fetchImpl = (async () => ({ ok: false, status: 404, json: async () => ({}) })) as unknown as typeof fetch
-        const status = await validateWithLemonSqueezy('KEY', { fetchImpl })
-        expect(status.valid).toBe(false)
-        expect(status.reason).toBe('http-404')
-    })
-
-    it('fails closed on a network error', async () => {
-        const fetchImpl = (async () => { throw new Error('network down') }) as unknown as typeof fetch
-        const status = await validateWithLemonSqueezy('KEY', { fetchImpl })
-        expect(status.valid).toBe(false)
-        expect(status.reason).toBe('network-error')
-    })
-
-    it('fails closed for an empty key without calling the network', async () => {
-        let called = false
-        const fetchImpl = (async () => { called = true; return { ok: true, status: 200, json: async () => ({}) } }) as unknown as typeof fetch
-        const status = await validateWithLemonSqueezy('', { fetchImpl })
-        expect(status.valid).toBe(false)
-        expect(called).toBe(false)
-    })
-})
-
-describe('verifyLicense (orchestration)', () => {
+describe('verifyLicense (offline / sovereign only)', () => {
     it('fails closed for empty/nullish keys', async () => {
         expect((await verifyLicense('')).valid).toBe(false)
         expect((await verifyLicense(null)).valid).toBe(false)
         expect((await verifyLicense(undefined)).valid).toBe(false)
     })
 
-    it('returns pro from the offline signed-key path without going online', async () => {
+    it('returns pro from the offline signed-key path with zero network calls', async () => {
         const { privateKey, publicKey } = await makeKeyPair()
         const publicKeyJwk = await subtle.exportKey('jwk', publicKey)
         const key = await signLicense({ tier: 'pro' }, privateKey)
 
-        let online = false
-        const fetchImpl = (async () => { online = true; return { ok: true, status: 200, json: async () => ({}) } }) as unknown as typeof fetch
-        const status = await verifyLicense(key, { publicKeyJwk, now: NOW_MS, online: true, fetchImpl })
-        expect(status.valid).toBe(true)
-        expect(online).toBe(false)
-    })
-
-    it('falls back to online validation when the offline check fails', async () => {
-        const fetchImpl = (async () => ({
-            ok: true,
-            status: 200,
-            json: async () => ({ valid: true, license_key: { status: 'active' } }),
-        })) as unknown as typeof fetch
-        const status = await verifyLicense('LEMON-KEY', { online: true, fetchImpl })
+        const status = await verifyLicense(key, { publicKeyJwk, now: NOW_MS })
         expect(status.valid).toBe(true)
         expect(status.tier).toBe('pro')
     })
 
-    it('stays on free tier when offline fails and online is disabled', async () => {
-        const status = await verifyLicense('LEMON-KEY', { online: false })
+    it('stays on free tier when the signed check fails (no processor fallback)', async () => {
+        // A non-signed key (e.g. a legacy processor UUID) can never unlock Pro now.
+        const status = await verifyLicense('not-a-signed-token')
         expect(status.valid).toBe(false)
     })
 })
@@ -317,17 +255,19 @@ describe('license checkout helpers', () => {
         expect(captured).toEqual([])
     })
 
-    it('adds non-secret return metadata to the hosted checkout URL', () => {
+    it('adds a source marker and a clean return URL to the mint checkout URL', () => {
         const checkoutUrl = buildProCheckoutUrl(
-            'https://example.lemonsqueezy.com/buy/pro',
+            'https://mint.example.com/',
             'https://chatgpt.com/?ce_license_key=license-123',
         )
         const url = new URL(checkoutUrl ?? '')
-        const returnUrl = new URL(url.searchParams.get('checkout[custom][return_url]') ?? '')
+        const returnUrl = new URL(url.searchParams.get('return') ?? '')
 
-        expect(url.searchParams.get('checkout[custom][source]')).toBe('chatgpt-exporter')
+        expect(url.origin).toBe('https://mint.example.com')
+        expect(url.searchParams.get('source')).toBe('chatgpt-exporter')
         expect(returnUrl.origin).toBe('https://chatgpt.com')
         expect(returnUrl.searchParams.get('ce_checkout_return')).toBe('1')
+        // the already-consumed key is never echoed back into the return URL
         expect(returnUrl.searchParams.has('ce_license_key')).toBe(false)
     })
 

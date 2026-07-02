@@ -113,13 +113,9 @@ The two Pro capabilities map directly to the feature flags in the codebase (`PRO
 
 ### Plan and Status
 
-The code supports a hosted Lemon Squeezy checkout URL when
-`LEMONSQUEEZY_STORE_ID` (or `VITE_LEMONSQUEEZY_STORE_ID`) is configured at build time. After purchase, the checkout can return the license
-key to ChatGPT Exporter automatically; you can also paste the key into the
-settings panel. The key is stored locally via Tampermonkey storage and unlocks
-Pro features in place after verification.
+Checkout is **sovereign**: the **Buy Pro** button opens [MONETA](https://github.com/organvm/limen/tree/main/moneta) — the seller's own Bitcoin licence mint — configured via `MINT_CHECKOUT_URL` at build time. Payment goes straight to the seller (no Stripe/Lemon Squeezy/Ko-fi, no processor in the path). After payment confirms on-chain, the mint returns the signed licence key automatically; you can also paste it into the settings panel. The key is stored locally via Tampermonkey storage and verified **offline** against MONETA's public key (`MINT_PUBLIC_JWK`) — no network call, nothing a third party can revoke.
 
-> **Status — first revenue slice implemented.** The Pro gate now fails closed against signed-key or Lemon Squeezy validation, captures checkout-return license keys, scrubs license material from the URL, and gates bulk / multi-provider export through `PRO_FEATURES`. A production checkout URL still needs to be configured at build time, and live Claude/Gemini extraction remains foundation-only — see [Architecture: providers](#architecture-providers).
+> **Status — first revenue slice implemented, sovereign rail.** The Pro gate fails closed against an offline MONETA-signed key, captures checkout-return license keys, scrubs license material from the URL, and gates bulk / multi-provider export through `PRO_FEATURES`. A production `MINT_CHECKOUT_URL` + `MINT_PUBLIC_JWK` still need to be wired at build time, and live Claude/Gemini extraction remains foundation-only — see [Architecture: providers](#architecture-providers).
 
 ### Support / Sponsor
 
@@ -266,7 +262,7 @@ hosts: `chatgpt.com`, `chat.openai.com`, and `new.oaifree.com`. It runs on the
 root page, `?model=*`, `/c/*`, `/g/*`, `/gpts`, `/gpts/*`, `/share/*`, and
 `/share/*/continue` paths for those hosts. It also matches `?ce_license_key=*`,
 `?license_key=*`, and `?license=*` query strings so that a Pro license key
-returned from the Lemon Squeezy checkout is captured automatically.
+returned from the MONETA checkout is captured automatically.
 
 ### Run it in ChatGPT
 
@@ -345,7 +341,7 @@ settings:
 | **Language** | Selects one of the locales in `src/i18n.ts`; the value is stored as `exporter:language`. |
 | **File Name** | Edits the filename template. Default: `ChatGPT-{title}`. |
 | **Export All Limit** | Controls the maximum conversations fetched by Export All. Default: `1000`; slider range: `100` to `20000` in steps of `100`. |
-| **Pro License** | Stores the license key as `exporter:pro_license_key` and verifies it with the license helpers. **Buy Pro** is enabled only when checkout is configured at build time via `LEMONSQUEEZY_STORE_ID` (or `VITE_LEMONSQUEEZY_STORE_ID`). |
+| **Pro License** | Stores the license key as `exporter:pro_license_key` and verifies it offline against MONETA's public key. **Buy Pro** is enabled only when checkout is configured at build time via `MINT_CHECKOUT_URL` (the MONETA storefront URL). |
 | **API Auth** | Issues, unlocks, and revokes the local API gate required before backend API calls run. |
 | **Conversation Timestamp** | Injects per-message timestamps into the ChatGPT page when enabled. Optional sub-toggles enable 24-hour display, HTML export timestamps, and Markdown export timestamps. |
 | **Export Metadata** | Adds configured key/value metadata to Markdown front matter and to the HTML metadata block. Defaults to `title: {title}` and `source: {source}` when enabled. |
@@ -393,11 +389,14 @@ node scripts/build-site.mjs         # build only if dist/chatgpt.user.js is miss
 node scripts/build-site.mjs --build # always run pnpm run build first, then assemble dist-site/
 ```
 
-Set `LEMONSQUEEZY_STORE_ID` or `VITE_LEMONSQUEEZY_STORE_ID` at build time to
-enable the in-app **Buy Pro** button and the landing-page **Buy Pro** CTA:
+Set `MINT_CHECKOUT_URL` (the deployed MONETA storefront) and `MINT_PUBLIC_JWK`
+(the mint's `/pubkey`) at build time to enable the in-app **Buy Pro** button, the
+landing-page CTA, and offline licence verification:
 
 ```bash
-LEMONSQUEEZY_STORE_ID="https://your-store.lemonsqueezy.com/buy/..." pnpm build
+MINT_CHECKOUT_URL="https://your-mint.example/" \
+MINT_PUBLIC_JWK='{"kty":"EC","crv":"P-256","x":"…","y":"…"}' \
+  pnpm build
 ```
 
 ---

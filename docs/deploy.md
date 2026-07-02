@@ -48,18 +48,22 @@ pnpm run preview:site       # build + serve at http://localhost:8080
 > Every target below is configured to send `Content-Type: text/javascript` for
 > `chatgpt.user.js` (nginx config, `vercel.json`, and `_headers` respectively).
 
-### Pro checkout configuration
+### Pro checkout configuration (sovereign — MONETA)
 
-Set `LEMONSQUEEZY_STORE_ID` (or `VITE_LEMONSQUEEZY_STORE_ID`) at build time to enable the in-app **Buy Pro**
-button and the landing-page **Buy Pro** CTA.
+Checkout runs through [MONETA](https://github.com/organvm/limen/tree/main/moneta), the seller's own
+Bitcoin licence mint — **no third-party processor**. Set two **public** build-time values:
 
-`LEMONSQUEEZY_STORE_ID` (or `VITE_LEMONSQUEEZY_STORE_ID`) can be either:
+- `MINT_CHECKOUT_URL` — the deployed MONETA storefront (its `GET /` page), e.g. `https://your-mint.example/`.
+  Enables the in-app **Buy Pro** button and the landing-page CTA.
+- `MINT_PUBLIC_JWK` — the mint's ECDSA P-256 public key (from `GET /pubkey`). Enables **offline** licence
+  verification, so a purchased key unlocks Pro with zero network calls.
 
-- the full hosted Lemon Squeezy checkout URL (preferred)
-- a host/path fragment that resolves to the hosted checkout URL
+Both are public (a URL and a public key); neither is a secret.
 
 ```bash
-LEMONSQUEEZY_STORE_ID="https://your-store.lemonsqueezy.com/buy/..." pnpm run build
+MINT_CHECKOUT_URL="https://your-mint.example/" \
+MINT_PUBLIC_JWK='{"kty":"EC","crv":"P-256","x":"…","y":"…"}' \
+  pnpm run build
 ```
 
 When this value is empty, the Pro gate still verifies pasted license keys, but

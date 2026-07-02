@@ -1,21 +1,19 @@
 /**
  * License-key verification and Pro checkout for the Pro gate.
  *
- * Two verification paths are supported:
- *   1. Offline signed-key check — the key carries a payload + an ECDSA (P-256 /
- *      SHA-256) signature produced by the vendor's private key. We verify it
- *      against an embedded public key. Works without network access.
- *   2. Online Lemon Squeezy validation — POSTs the key to the Lemon Squeezy
- *      license API and trusts the `active` status.
+ * Verification is **offline and sovereign**: a licence key carries a payload + an
+ * ECDSA (P-256 / SHA-256) signature minted by MONETA — the seller's own Bitcoin
+ * licence mint. We verify it against MONETA's embedded public key with zero
+ * network calls: no processor, no phone-home, nothing a third party can revoke
+ * or rate-limit. The key that unlocks Pro was paid for straight to the seller.
  *
- * Both paths **fail closed**: any malformed key, bad signature, expired licence,
- * network error, or unexpected response downgrades the user to the free tier.
- * Pro features must therefore gate on {@link isProUnlocked} / {@link hasFeature},
- * never on the mere presence of a stored key.
+ * Verification **fails closed**: any malformed key, bad signature, or expired
+ * licence downgrades the user to the free tier. Pro features must therefore gate
+ * on {@link isProUnlocked} / {@link hasFeature}, never on the mere presence of a
+ * stored key.
  *
- * The checkout helpers at the bottom build a hosted Lemon Squeezy checkout URL
- * (with non-secret return metadata) and recover a license key from the redirect
- * the customer lands on after paying.
+ * The checkout helpers at the bottom open MONETA's own checkout page and recover
+ * the minted licence key from the redirect the buyer lands on after paying.
  */
 
 export type LicenseTier = 'free' | 'pro'
@@ -54,26 +52,42 @@ export interface LicenseStatus {
 /** The safe default returned whenever verification cannot succeed. */
 export const FREE_STATUS: LicenseStatus = Object.freeze({ valid: false, tier: 'free', features: [] })
 
-declare const __LEMONSQUEEZY_STORE_ID__: string
+declare const __MINT_CHECKOUT_URL__: string
+declare const __MINT_PUBLIC_JWK__: string
 
 function freeStatus(reason: string, payload?: LicensePayload): LicenseStatus {
     return { valid: false, tier: 'free', features: [], reason, payload }
 }
 
 /**
- * Embedded vendor public key (ECDSA P-256, JWK) used to verify signed keys.
- * Replace with the real production key before release; `null` disables the
- * offline path and forces online validation only.
+ * MONETA's ECDSA P-256 public key (JWK), injected at build time from the mint's
+ * `/pubkey`. It verifies offline-minted Pro licences with zero network calls.
+ * `null` (a build with no key wired) disables the offline path — and since the
+ * sovereign path is the only path, such a build simply cannot unlock Pro.
  */
-export const EXPORTER_PUBLIC_KEY_JWK: JsonWebKey | null = null
+function resolveMintPublicKey(): JsonWebKey | null {
+    const raw = (
+        (typeof __MINT_PUBLIC_JWK__ === 'string' ? __MINT_PUBLIC_JWK__ : '')
+        || import.meta.env.VITE_MINT_PUBLIC_JWK
+        || ''
+    ).trim()
+    if (!raw) return null
 
-const LEMON_SQUEEZY_VALIDATE_URL = 'https://api.lemonsqueezy.com/v1/licenses/validate'
+    try {
+        const jwk = JSON.parse(raw) as JsonWebKey
+        return jwk && typeof jwk === 'object' && typeof jwk.kty === 'string' ? jwk : null
+    }
+    catch {
+        return null
+    }
+}
 
-const LEMON_SQUEEZY_STORE_ID_INPUT =
+export const EXPORTER_PUBLIC_KEY_JWK: JsonWebKey | null = resolveMintPublicKey()
+
+const MINT_CHECKOUT_URL_INPUT =
     (
-        (typeof __LEMONSQUEEZY_STORE_ID__ === 'string' ? __LEMONSQUEEZY_STORE_ID__ : '')
-        || import.meta.env.VITE_LEMONSQUEEZY_STORE_ID
-        || import.meta.env.VITE_LEMON_SQUEEZY_CHECKOUT_URL
+        (typeof __MINT_CHECKOUT_URL__ === 'string' ? __MINT_CHECKOUT_URL__ : '')
+        || import.meta.env.VITE_MINT_CHECKOUT_URL
         || ''
     ).trim()
 
@@ -86,7 +100,7 @@ function normalizeCheckoutInputUrl(value: string) {
 }
 
 function resolveCheckoutUrl() {
-    return normalizeCheckoutInputUrl(LEMON_SQUEEZY_STORE_ID_INPUT)
+    return normalizeCheckoutInputUrl(MINT_CHECKOUT_URL_INPUT)
 }
 
 function base64UrlToBytes(input: string): Uint8Array<ArrayBuffer> {
@@ -194,99 +208,36 @@ export async function verifySignedLicense(
     }
 }
 
-interface LemonSqueezyResponse {
-    valid?: boolean
-    license_key?: { status?: string }
-    meta?: { customer_email?: string }
-}
-
 /**
- * Validate a licence key against the Lemon Squeezy license API.
- * Fails closed on network errors, non-2xx responses, or any non-`active` status.
- */
-export async function validateWithLemonSqueezy(
-    key: string,
-    opts: { fetchImpl?: typeof fetch, url?: string, instanceId?: string } = {},
-): Promise<LicenseStatus> {
-    if (!key || typeof key !== 'string' || !key.trim()) return freeStatus('empty')
-
-    const doFetch = opts.fetchImpl ?? (typeof fetch !== 'undefined' ? fetch : undefined)
-    if (!doFetch) return freeStatus('fetch-unavailable')
-
-    try {
-        const body = new URLSearchParams({ license_key: key.trim() })
-        if (opts.instanceId) body.set('instance_id', opts.instanceId)
-
-        const res = await doFetch(opts.url ?? LEMON_SQUEEZY_VALIDATE_URL, {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: body.toString(),
-        })
-        if (!res.ok) return freeStatus(`http-${res.status}`)
-
-        const data = await res.json() as LemonSqueezyResponse
-        if (!data || data.valid !== true || data.license_key?.status !== 'active') {
-            return freeStatus('inactive')
-        }
-
-        return {
-            valid: true,
-            tier: 'pro',
-            features: [...PRO_FEATURES],
-            payload: { tier: 'pro', sub: data.meta?.customer_email },
-        }
-    }
-    catch {
-        return freeStatus('network-error')
-    }
-}
-
-/**
- * Verify a stored licence key. Tries the offline signed-key check first (so a
- * valid signed key works without network), then falls back to Lemon Squeezy when
- * `online` is enabled. Always fails closed to the free tier.
+ * Verify a stored licence key. The sovereign path is the only path: an offline
+ * signed-key check against MONETA's embedded public key. Always fails closed to
+ * the free tier.
  */
 export async function verifyLicense(
     key: string | null | undefined,
-    opts: {
-        publicKeyJwk?: JsonWebKey | null
-        now?: number
-        online?: boolean
-        fetchImpl?: typeof fetch
-    } = {},
+    opts: { publicKeyJwk?: JsonWebKey | null, now?: number } = {},
 ): Promise<LicenseStatus> {
     if (!key || typeof key !== 'string' || !key.trim()) return freeStatus('empty')
 
-    const signed = await verifySignedLicense(key, { publicKeyJwk: opts.publicKeyJwk, now: opts.now })
-    if (signed.valid) return signed
-
-    if (opts.online) {
-        return validateWithLemonSqueezy(key, { fetchImpl: opts.fetchImpl })
-    }
-    return signed
+    return verifySignedLicense(key, { publicKeyJwk: opts.publicKeyJwk, now: opts.now })
 }
 
 // ---------------------------------------------------------------------------
-// Lemon Squeezy hosted checkout
+// MONETA sovereign checkout
 // ---------------------------------------------------------------------------
 
 const CHECKOUT_RETURN_PARAM = 'ce_checkout_return'
 const CHECKOUT_SOURCE = 'chatgpt-exporter'
 
-/** Hosted Lemon Squeezy checkout URL, injected at build time. Empty disables checkout. */
-export const LEMON_SQUEEZY_CHECKOUT_URL = resolveCheckoutUrl()
+/** MONETA checkout-page URL, injected at build time. Empty disables checkout. */
+export const MINT_CHECKOUT_URL = resolveCheckoutUrl()
 
-/** Query/hash param names a Lemon Squeezy return redirect may carry the license key in. */
+/** Query/hash param names the mint's return redirect may carry the license key in. */
 export const LICENSE_PARAM_NAMES = [
     'ce_license_key',
     'license_key',
     'licenseKey',
     'license',
-    'lemon_squeezy_license_key',
-    'lemonsqueezy_license_key',
 ]
 
 function toUrl(input: string | URL | Location) {
@@ -334,7 +285,7 @@ function cleanHash(hash: string) {
     return nextParams ? `#${hashPath}?${nextParams}` : `#${hashPath}`
 }
 
-/** Recover a license key the Lemon Squeezy return redirect carries, or `null`. */
+/** Recover a license key the mint's return redirect carries, or `null`. */
 export function getLicenseFromUrl(input: string | URL | Location = window.location) {
     const url = toUrl(input)
     const sources = [
@@ -405,12 +356,13 @@ export function buildCheckoutReturnUrl(input: string | URL | Location = window.l
 }
 
 /**
- * Build the hosted Lemon Squeezy checkout URL, tagging it with a non-secret
- * source marker and a return URL the customer is sent back to after paying.
- * Returns `null` when checkout is unconfigured or the URL is not http(s).
+ * Build the MONETA checkout-page URL, tagging it with a non-secret source marker
+ * and a `return` URL the mint sends the buyer back to (carrying the minted
+ * `ce_license_key`) after payment confirms. Returns `null` when checkout is
+ * unconfigured or the URL is not http(s).
  */
 export function buildProCheckoutUrl(
-    checkoutUrl = LEMON_SQUEEZY_CHECKOUT_URL,
+    checkoutUrl = MINT_CHECKOUT_URL,
     returnUrl: string | URL | Location = window.location,
 ) {
     const trimmedCheckoutUrl = checkoutUrl.trim()
@@ -420,12 +372,12 @@ export function buildProCheckoutUrl(
         const url = new URL(trimmedCheckoutUrl)
         if (url.protocol !== 'https:' && url.protocol !== 'http:') return null
 
-        if (!url.searchParams.has('checkout[custom][source]')) {
-            url.searchParams.set('checkout[custom][source]', CHECKOUT_SOURCE)
+        if (!url.searchParams.has('source')) {
+            url.searchParams.set('source', CHECKOUT_SOURCE)
         }
 
-        if (!url.searchParams.has('checkout[custom][return_url]')) {
-            url.searchParams.set('checkout[custom][return_url]', buildCheckoutReturnUrl(returnUrl))
+        if (!url.searchParams.has('return')) {
+            url.searchParams.set('return', buildCheckoutReturnUrl(returnUrl))
         }
 
         return url.toString()
@@ -435,8 +387,8 @@ export function buildProCheckoutUrl(
     }
 }
 
-/** Open the hosted Pro checkout in a new tab. Returns false when unconfigured. */
-export function openProCheckout(checkoutUrl = LEMON_SQUEEZY_CHECKOUT_URL) {
+/** Open MONETA's Pro checkout in a new tab. Returns false when unconfigured. */
+export function openProCheckout(checkoutUrl = MINT_CHECKOUT_URL) {
     const url = buildProCheckoutUrl(checkoutUrl)
     if (!url) return false
 

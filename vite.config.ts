@@ -3,16 +3,24 @@ import { defineConfig } from 'vite'
 import monkey, { cdn } from 'vite-plugin-monkey'
 import packageJson from './package.json'
 
-const lemonSqueezyCheckoutUrl =
-    process.env.LEMONSQUEEZY_STORE_ID
-    || process.env.VITE_LEMONSQUEEZY_STORE_ID
-    || process.env.VITE_LEMON_SQUEEZY_CHECKOUT_URL
+// MONETA sovereign checkout, injected at build time. The checkout URL points at
+// the mint's own storefront (GET / on the deployed MONETA); the public JWK comes
+// from the mint's /pubkey and enables offline licence verification. No processor.
+const mintCheckoutUrl =
+    process.env.MINT_CHECKOUT_URL
+    || process.env.VITE_MINT_CHECKOUT_URL
+    || ''
+
+const mintPublicJwk =
+    process.env.MINT_PUBLIC_JWK
+    || process.env.VITE_MINT_PUBLIC_JWK
     || ''
 
 // https://vitejs.dev/config/
 export default defineConfig({
     define: {
-        __LEMONSQUEEZY_STORE_ID__: JSON.stringify(lemonSqueezyCheckoutUrl),
+        __MINT_CHECKOUT_URL__: JSON.stringify(mintCheckoutUrl),
+        __MINT_PUBLIC_JWK__: JSON.stringify(mintPublicJwk),
     },
     plugins: [
         preact({
@@ -39,7 +47,7 @@ export default defineConfig({
                     'https://chat.openai.com/',
                     // support https://chat.openai.com/?model={model}
                     'https://chat.openai.com/?model=*',
-                    // support Lemon Squeezy checkout return
+                    // support MONETA checkout return
                     'https://chat.openai.com/?ce_license_key=*',
                     'https://chat.openai.com/?license_key=*',
                     'https://chat.openai.com/?license=*',
