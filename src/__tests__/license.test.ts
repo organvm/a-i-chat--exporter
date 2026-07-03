@@ -12,6 +12,7 @@ import {
     hasFeature,
     isProUnlocked,
     maskLicense,
+    parseEmbeddedPublicJwk,
     validateWithLemonSqueezy,
     verifyLicense,
     verifySignedLicense,
@@ -345,5 +346,61 @@ describe('license checkout helpers', () => {
 
     it('masks stored license keys', () => {
         expect(maskLicense('12345678-abcdef')).toBe('****-cdef')
+    })
+})
+
+describe('parseEmbeddedPublicJwk (build-time key injection)', () => {
+    it('returns null for empty/nullish input (rail off → fail closed)', () => {
+        expect(parseEmbeddedPublicJwk('')).toBeNull()
+        expect(parseEmbeddedPublicJwk('   ')).toBeNull()
+        expect(parseEmbeddedPublicJwk(null)).toBeNull()
+        expect(parseEmbeddedPublicJwk(undefined)).toBeNull()
+    })
+
+    it('returns null for malformed JSON', () => {
+        expect(parseEmbeddedPublicJwk('{not json')).toBeNull()
+    })
+
+    it('returns null for a non-EC / non-P-256 / incomplete key', () => {
+        expect(parseEmbeddedPublicJwk(JSON.stringify({ kty: 'RSA', n: 'x', e: 'AQAB' }))).toBeNull()
+        expect(parseEmbeddedPublicJwk(JSON.stringify({ kty: 'EC', crv: 'P-384', x: 'a', y: 'b' }))).toBeNull()
+        expect(parseEmbeddedPublicJwk(JSON.stringify({ kty: 'EC', crv: 'P-256', x: 'a' }))).toBeNull()
+    })
+
+    it('parses a real exported P-256 public JWK', async () => {
+        const { publicKey } = await makeKeyPair()
+        const parsed = parseEmbeddedPublicJwk(JSON.stringify(await subtle.exportKey('jwk', publicKey)))
+        expect(parsed?.kty).toBe('EC')
+        expect(parsed?.crv).toBe('P-256')
+    })
+})
+
+describe('MONETA mint → Exporter verify (drop-in, no adapter)', () => {
+    // The `signLicense` helper above is byte-for-byte MONETA's `mintProLicense`
+    // output (base64url(payload).base64url(rawSig), r‖s over the base64url
+    // payload string). These tests prove a MONETA-signed licence verifies
+    // through the same embedded-key path the shipped build uses.
+    it('verifies a licence minted in MONETA\'s exact token format', async () => {
+        const { privateKey, publicKey } = await makeKeyPair()
+        // The public half is what ships in the build via VITE_EXPORTER_PUBLIC_JWK.
+        const embeddedJwk = parseEmbeddedPublicJwk(JSON.stringify(await subtle.exportKey('jwk', publicKey)))
+        const licence = await signLicense({ tier: 'pro', sub: 'buyer@example.com' }, privateKey)
+
+        const status = await verifyLicense(licence, { publicKeyJwk: embeddedJwk, now: NOW_MS })
+        expect(status.valid).toBe(true)
+        expect(status.tier).toBe('pro')
+        expect(status.features).toEqual([PRO_FEATURE_BULK_EXPORT, PRO_FEATURE_MULTI_PROVIDER])
+        expect(status.payload?.sub).toBe('buyer@example.com')
+    })
+
+    it('honours a MONETA time-boxed (ttlDays → exp) licence', async () => {
+        const { privateKey, publicKey } = await makeKeyPair()
+        const embeddedJwk = parseEmbeddedPublicJwk(JSON.stringify(await subtle.exportKey('jwk', publicKey)))
+        // MONETA sets exp = issued + ttlDays; an already-lapsed one must fail closed.
+        const licence = await signLicense({ tier: 'pro', exp: NOW_S - 1 }, privateKey)
+
+        const status = await verifyLicense(licence, { publicKeyJwk: embeddedJwk, now: NOW_MS })
+        expect(status.valid).toBe(false)
+        expect(status.reason).toBe('expired')
     })
 })

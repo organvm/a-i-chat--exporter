@@ -55,23 +55,52 @@ export interface LicenseStatus {
 export const FREE_STATUS: LicenseStatus = Object.freeze({ valid: false, tier: 'free', features: [] })
 
 declare const __LEMONSQUEEZY_STORE_ID__: string
+declare const __EXPORTER_PUBLIC_JWK__: string
+declare const __MONETA_CHECKOUT_URL__: string
 
 function freeStatus(reason: string, payload?: LicensePayload): LicenseStatus {
     return { valid: false, tier: 'free', features: [], reason, payload }
 }
 
 /**
- * Embedded vendor public key (ECDSA P-256, JWK) used to verify signed keys.
- * Replace with the real production key before release; `null` disables the
- * offline path and forces online validation only.
+ * Parse an embedded ECDSA P-256 public JWK from its build-time string form.
+ * Exported for testing. Returns `null` for empty, malformed, or wrong-curve
+ * input so the offline path fails closed rather than throwing.
  */
-export const EXPORTER_PUBLIC_KEY_JWK: JsonWebKey | null = null
+export function parseEmbeddedPublicJwk(raw: string | null | undefined): JsonWebKey | null {
+    if (!raw || typeof raw !== 'string' || !raw.trim()) return null
+    try {
+        const jwk = JSON.parse(raw.trim()) as JsonWebKey
+        if (!jwk || jwk.kty !== 'EC' || jwk.crv !== 'P-256' || !jwk.x || !jwk.y) return null
+        return jwk
+    }
+    catch {
+        return null
+    }
+}
+
+/**
+ * Embedded vendor public key (ECDSA P-256, JWK) used to verify signed keys
+ * offline. Injected at build time from `VITE_EXPORTER_PUBLIC_JWK` — the MONETA
+ * mint's public JWK (`npm run keygen` in limen/moneta). Left unset, this is
+ * `null`, which disables the offline path (forcing online validation only), so
+ * an unconfigured build still fails closed to the free tier.
+ */
+export const EXPORTER_PUBLIC_KEY_JWK: JsonWebKey | null = parseEmbeddedPublicJwk(
+    (typeof __EXPORTER_PUBLIC_JWK__ === 'string' ? __EXPORTER_PUBLIC_JWK__ : '')
+    || import.meta.env.VITE_EXPORTER_PUBLIC_JWK
+    || '',
+)
 
 const LEMON_SQUEEZY_VALIDATE_URL = 'https://api.lemonsqueezy.com/v1/licenses/validate'
 
-const LEMON_SQUEEZY_STORE_ID_INPUT =
+// Hosted-checkout URL sources, MONETA (our sovereign mint) first, Lemon Squeezy
+// as legacy fallback. Both flow through the same redirect + return-capture seam.
+const CHECKOUT_URL_INPUT =
     (
-        (typeof __LEMONSQUEEZY_STORE_ID__ === 'string' ? __LEMONSQUEEZY_STORE_ID__ : '')
+        (typeof __MONETA_CHECKOUT_URL__ === 'string' ? __MONETA_CHECKOUT_URL__ : '')
+        || import.meta.env.VITE_MONETA_CHECKOUT_URL
+        || (typeof __LEMONSQUEEZY_STORE_ID__ === 'string' ? __LEMONSQUEEZY_STORE_ID__ : '')
         || import.meta.env.VITE_LEMONSQUEEZY_STORE_ID
         || import.meta.env.VITE_LEMON_SQUEEZY_CHECKOUT_URL
         || ''
@@ -86,7 +115,7 @@ function normalizeCheckoutInputUrl(value: string) {
 }
 
 function resolveCheckoutUrl() {
-    return normalizeCheckoutInputUrl(LEMON_SQUEEZY_STORE_ID_INPUT)
+    return normalizeCheckoutInputUrl(CHECKOUT_URL_INPUT)
 }
 
 function base64UrlToBytes(input: string): Uint8Array<ArrayBuffer> {

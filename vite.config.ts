@@ -4,11 +4,17 @@ import monkey, { cdn } from 'vite-plugin-monkey'
 import packageJson from './package.json'
 
 const lemonSqueezyStoreId = process.env.LEMONSQUEEZY_STORE_ID ?? ''
+// MONETA sovereign rail: the mint's public JWK (verify key) and hosted-checkout
+// URL, both injected at build time. Empty = rail off, offline path disabled.
+const exporterPublicJwk = process.env.VITE_EXPORTER_PUBLIC_JWK ?? ''
+const monetaCheckoutUrl = process.env.VITE_MONETA_CHECKOUT_URL ?? ''
 
 // https://vitejs.dev/config/
 export default defineConfig({
     define: {
         __LEMONSQUEEZY_STORE_ID__: JSON.stringify(lemonSqueezyStoreId),
+        __EXPORTER_PUBLIC_JWK__: JSON.stringify(exporterPublicJwk),
+        __MONETA_CHECKOUT_URL__: JSON.stringify(monetaCheckoutUrl),
     },
     plugins: [
         preact({

@@ -65,6 +65,36 @@ LEMONSQUEEZY_STORE_ID="https://your-store.lemonsqueezy.com/buy/..." pnpm run bui
 When this value is empty, the Pro gate still verifies pasted license keys, but
 the in-app checkout button stays disabled.
 
+### Sovereign rail — MONETA (no processor, self-custodied BTC)
+
+Instead of Lemon Squeezy you can settle payments on a mint you own: **MONETA**
+(`limen/moneta`) takes BTC to an owner-controlled address, confirms against a
+keyless public explorer, and signs each Pro licence as an offline ECDSA P-256
+token — **byte-for-byte the format this app's offline gate already verifies**.
+No card network, no KYC processor, no online round-trip to unlock Pro.
+
+Two build-time env vars activate it:
+
+```bash
+# 1. Get the mint's public verify key (run in limen/moneta):
+npm run keygen                     # prints the public JWK
+
+# 2. Build the userscript wired to the mint:
+VITE_EXPORTER_PUBLIC_JWK='{"kty":"EC","crv":"P-256","x":"…","y":"…"}' \
+VITE_MONETA_CHECKOUT_URL="https://<your-mint-host>/checkout" \
+  pnpm run build
+```
+
+- `VITE_EXPORTER_PUBLIC_JWK` embeds the mint's public key so the userscript
+  verifies MONETA-signed licences **offline** (unset ⇒ offline path off, fails
+  closed to free — same as today).
+- `VITE_MONETA_CHECKOUT_URL` points the **Buy Pro** button at the mint and takes
+  precedence over any Lemon Squeezy value; the mint redirects back with
+  `?ce_license_key=<token>`, which the existing return-capture pipeline persists.
+- The mint pools demand as `reserved` orders and takes **$0** until its
+  `MINT_BTC_ADDRESS` is set — the single valve that opens real payment. See
+  `limen/moneta` and the Phase-0 deploy runbook for the mint side.
+
 ---
 
 ## Option 1 — Docker (self-host)
