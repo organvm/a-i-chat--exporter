@@ -18,6 +18,12 @@ function main() {
         styleEl.id = 'sentinel-css'
         document.head.append(styleEl)
 
+        const provider = getActiveProvider()
+        if (provider?.mountMenu) {
+            provider.mountMenu(getMenuContainer)
+            return
+        }
+
         const injectionMap = new Map<HTMLElement, HTMLElement>()
 
         const injectNavMenu = (nav: HTMLElement) => {

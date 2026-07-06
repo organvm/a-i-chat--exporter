@@ -40,6 +40,15 @@ import type {
     ConversationResult,
 } from '../api'
 
+export interface ProviderFeatures {
+    bulkExport?: boolean
+    archive?: boolean
+    delete?: boolean
+    projects?: boolean
+    timestamps?: boolean
+    png?: boolean
+}
+
 /**
  * A conversation source (ChatGPT, Claude, Gemini, ...).
  *
@@ -54,11 +63,17 @@ export interface Provider {
     /** Human-readable label for UI / logging (e.g. `'ChatGPT'`). */
     label: string
 
+    /** Optional feature overrides for providers that cannot support every ChatGPT workflow. */
+    features?: ProviderFeatures
+
     /**
      * Returns true if this provider is responsible for the given host.
      * Used by the registry to pick the active provider from `location.host`.
      */
     matchHost: (host: string) => boolean
+
+    /** Provider-specific chat id parser for non-ChatGPT URL structures. */
+    getChatIdFromUrl?: () => string | null
 
     /** Resolve the id of the conversation currently open in the page. */
     getCurrentChatId: () => Promise<string>
@@ -91,4 +106,19 @@ export interface Provider {
      * export pipeline (md/html/json/text/image) consumes.
      */
     processConversation: (conversation: ApiConversationWithId) => ConversationResult
+
+    /** Provider-specific active-conversation test. */
+    checkIfConversationStarted?: () => boolean
+
+    /** Provider-specific avatar extraction. */
+    getUserAvatar?: () => Promise<string>
+
+    /** Provider-specific canonical source URL for metadata. */
+    getConversationSource?: (id: string) => string
+
+    /** Provider-specific screenshot root. */
+    getScreenshotTarget?: () => HTMLElement | null
+
+    /** Provider-specific menu mount point. */
+    mountMenu?: (getMenuContainer: () => HTMLDivElement) => void
 }
