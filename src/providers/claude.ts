@@ -57,6 +57,7 @@
 import type {
     ApiConversationItem,
     ApiConversationWithId,
+    ApiProjectInfo,
     ConversationResult,
     Provider,
 } from './types'
@@ -77,7 +78,19 @@ export const claudeProvider: Provider = {
         throw new Error(NOT_IMPLEMENTED)
     },
 
+    fetchProjects(): Promise<ApiProjectInfo[]> {
+        throw new Error(NOT_IMPLEMENTED)
+    },
+
     fetchAllConversations(_project?: string | null, _max?: number): Promise<ApiConversationItem[]> {
+        throw new Error(NOT_IMPLEMENTED)
+    },
+
+    archiveConversation(_id: string): Promise<boolean> {
+        throw new Error(NOT_IMPLEMENTED)
+    },
+
+    deleteConversation(_id: string): Promise<boolean> {
         throw new Error(NOT_IMPLEMENTED)
     },
 
