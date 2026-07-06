@@ -9,7 +9,10 @@
  * The export pipeline only needs these capabilities from a provider:
  *   - identify the currently-open conversation        -> getCurrentChatId()
  *   - fetch one conversation (raw API shape)          -> fetchConversation()
+ *   - list projects/folders for bulk export           -> fetchProjects()
  *   - list conversations for bulk export              -> fetchAllConversations()
+ *   - archive/delete conversations                    -> archiveConversation()
+ *                                                       deleteConversation()
  *   - normalize a raw conversation into the model the -> processConversation()
  *     exporters understand (ConversationResult)
  *
@@ -21,9 +24,11 @@
 // import everything provider-related from one place without reaching into
 // `../api.ts` directly. These are the SAME types the exporters already use.
 export type {
-    ApiConversationWithId,
     ApiConversationItem,
+    ApiConversationWithId,
     ApiProjectInfo,
+    Citation,
+    ConversationNodeMessage,
     ConversationResult,
     ConversationNode,
 } from '../api'
@@ -31,6 +36,7 @@ export type {
 import type {
     ApiConversationItem,
     ApiConversationWithId,
+    ApiProjectInfo,
     ConversationResult,
 } from '../api'
 
@@ -64,12 +70,21 @@ export interface Provider {
      */
     fetchConversation: (id: string, replaceAssets: boolean) => Promise<ApiConversationWithId>
 
+    /** List provider-specific projects/folders for bulk export. */
+    fetchProjects: () => Promise<ApiProjectInfo[]>
+
     /**
      * List conversations for bulk export.
      * `project` scopes the listing to a project/folder when supported (null =
      * all conversations); `max` caps the number returned.
      */
     fetchAllConversations: (project?: string | null, max?: number) => Promise<ApiConversationItem[]>
+
+    /** Archive a conversation where the provider supports it. */
+    archiveConversation: (id: string) => Promise<boolean>
+
+    /** Delete a conversation where the provider supports it. */
+    deleteConversation: (id: string) => Promise<boolean>
 
     /**
      * Normalize a raw conversation into the shared `ConversationResult` that the

@@ -15,7 +15,16 @@ import { claudeProvider } from './claude'
 import { geminiProvider } from './gemini'
 import type { Provider } from './types'
 
-export type { Provider } from './types'
+export type {
+    ApiConversationItem,
+    ApiConversationWithId,
+    ApiProjectInfo,
+    Citation,
+    ConversationNode,
+    ConversationNodeMessage,
+    ConversationResult,
+    Provider,
+} from './types'
 export { chatgptProvider } from './chatgpt'
 export { claudeProvider } from './claude'
 export { geminiProvider } from './gemini'

@@ -8,8 +8,11 @@
  * (Claude, Gemini) in the registry. ChatGPT behavior is therefore unchanged.
  */
 import {
+    archiveConversation,
+    deleteConversation,
     fetchAllConversations,
     fetchConversation,
+    fetchProjects,
     getCurrentChatId,
     processConversation,
 } from '../api'
@@ -23,6 +26,9 @@ export const chatgptProvider: Provider = {
 
     getCurrentChatId,
     fetchConversation,
+    fetchProjects,
     fetchAllConversations,
+    archiveConversation,
+    deleteConversation,
     processConversation,
 }
