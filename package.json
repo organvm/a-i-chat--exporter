@@ -28,6 +28,7 @@
     "lint:fix": "eslint . --fix",
     "prepare": "husky",
     "site:build": "node scripts/build-site.mjs --build",
+    "publish:check": "node scripts/verify-publish-artifact.mjs",
     "preview:site": "node scripts/build-site.mjs && npx --yes serve dist-site -l 8080",
     "deploy": "docker compose up -d --build",
     "deploy:docker": "docker compose up -d --build",

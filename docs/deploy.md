@@ -59,6 +59,7 @@ Bitcoin licence mint — **no third-party processor**. Set two **public** build-
   verification, so a purchased key unlocks Pro with zero network calls.
 
 Both are public (a URL and a public key); neither is a secret.
+`VITE_EXPORTER_PUBLIC_JWK` is accepted as a compatibility alias for `MINT_PUBLIC_JWK`.
 
 ```bash
 MINT_CHECKOUT_URL="https://your-mint.example/" \
@@ -68,6 +69,15 @@ MINT_PUBLIC_JWK='{"kty":"EC","crv":"P-256","x":"…","y":"…"}' \
 
 When this value is empty, the Pro gate still verifies pasted license keys, but
 the in-app checkout button stays disabled.
+
+Before publishing a public artifact to Pages or GreasyFork, run:
+
+```bash
+pnpm run publish:check
+```
+
+The check fails if the generated `dist-site/` userscript or landing page was
+built without the mint checkout URL and public verify key.
 
 ---
 
@@ -102,7 +112,21 @@ pnpm run deploy:vercel  # vercel deploy --prod
 the output directory (`dist-site`), and the userscript content-type header. You can
 also import the repo in the Vercel dashboard — no extra config needed.
 
-## Option 3 — Cloudflare Pages
+## Option 3 — GitHub Pages
+
+The GitHub Actions deploy workflow publishes the assembled `dist-site/` directory
+to GitHub Pages on pushes to `master` and on manual `workflow_dispatch` runs. The
+public install site is:
+
+```text
+https://organvm.github.io/a-i-chat--exporter/
+```
+
+The workflow uploads the same `dist-site/` artifact used by Vercel, Docker, and
+Cloudflare, then deploys it with `actions/deploy-pages`. Public deploys run
+`pnpm run publish:check`, so an empty-mint build fails before it reaches Pages.
+
+## Option 4 — Cloudflare Pages
 
 Cloudflare Pages authenticates with a **scoped API token**, not an interactive login.
 Mint one at **Cloudflare Dashboard → My Profile → API Tokens** and pass it via the
@@ -127,18 +151,21 @@ directory `dist-site`.
 On every push to `master` (and via the **Actions → Deploy → Run workflow** button):
 
 1. **build-site** — builds `dist-site/` and uploads it as a workflow artifact.
-2. **deploy-cloudflare** — deploys to Cloudflare Pages **only if** the repo secrets
+2. **deploy-github-pages** — deploys the verified `dist-site/` artifact to GitHub Pages.
+3. **deploy-cloudflare** — deploys to Cloudflare Pages **only if** the repo secrets
    `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are set (otherwise skipped
    with a notice).
-3. **docker** — builds and pushes the image to
+4. **docker** — builds and pushes the image to
    `ghcr.io/<owner>/<repo>:latest` using the built-in `GITHUB_TOKEN`.
 
-### Required secrets (optional integrations)
+### Required secrets / variables
 
-| Secret                  | Needed for             |
-| ----------------------- | ---------------------- |
-| `CLOUDFLARE_API_TOKEN`  | Cloudflare Pages deploy |
-| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare Pages deploy |
+| Value                                      | Needed for                              |
+| ------------------------------------------ | --------------------------------------- |
+| `MINT_CHECKOUT_URL` / `VITE_MINT_CHECKOUT_URL` | Public Pages, Docker, and GreasyFork artifacts |
+| `MINT_PUBLIC_JWK` / `VITE_EXPORTER_PUBLIC_JWK` | Public Pages, Docker, and GreasyFork artifacts |
+| `CLOUDFLARE_API_TOKEN`                    | Cloudflare Pages deploy                 |
+| `CLOUDFLARE_ACCOUNT_ID`                   | Cloudflare Pages deploy                 |
 
 The GHCR image publish needs no extra secrets.
 

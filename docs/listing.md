@@ -38,3 +38,18 @@ Add ChatGPT Exporter to your browser today and take full control of your convers
 - 🚀 **Updates Frequently**: We regularly update to maintain compatibility with ChatGPT's UI changes and add new features. 
 
 *Prerequisites*: Requires a userscript manager like Tampermonkey to be installed in your browser.
+
+## GreasyFork Publish Gate
+
+Publish `dist-site/chatgpt.user.js` only after a build with the live MONETA values:
+
+```bash
+MINT_CHECKOUT_URL="https://your-mint.example/" \
+MINT_PUBLIC_JWK='{"kty":"EC","crv":"P-256","x":"…","y":"…"}' \
+  pnpm run site:build
+pnpm run publish:check
+```
+
+The check requires the GreasyFork metadata, MONETA checkout URL, and MONETA public
+JWK to be present in the generated userscript. It fails an empty-mint build so
+the published **Buy Pro** button cannot silently ship disabled.

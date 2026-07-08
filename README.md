@@ -115,7 +115,7 @@ The two Pro capabilities map directly to the feature flags in the codebase (`PRO
 
 Checkout is **sovereign**: the **Buy Pro** button opens [MONETA](https://github.com/organvm/limen/tree/main/moneta) — the seller's own Bitcoin licence mint — configured via `MINT_CHECKOUT_URL` at build time. Payment goes straight to the seller (no Stripe/Lemon Squeezy/Ko-fi, no processor in the path). After payment confirms on-chain, the mint returns the signed licence key automatically; you can also paste it into the settings panel. The key is stored locally via Tampermonkey storage and verified **offline** against MONETA's public key (`MINT_PUBLIC_JWK`) — no network call, nothing a third party can revoke.
 
-> **Status — first revenue slice implemented, sovereign rail.** The Pro gate fails closed against an offline MONETA-signed key, captures checkout-return license keys, scrubs license material from the URL, and gates bulk / multi-provider export through `PRO_FEATURES`. A production `MINT_CHECKOUT_URL` + `MINT_PUBLIC_JWK` still need to be wired at build time, and live Claude/Gemini extraction remains foundation-only — see [Architecture: providers](#architecture-providers).
+> **Status — first revenue slice implemented, sovereign rail.** The Pro gate fails closed against an offline MONETA-signed key, captures checkout-return license keys, scrubs license material from the URL, and gates bulk / multi-provider export through `PRO_FEATURES`. Public Pages and GreasyFork artifacts must be built with `MINT_CHECKOUT_URL` + `MINT_PUBLIC_JWK` (or `VITE_EXPORTER_PUBLIC_JWK`) and pass `pnpm run publish:check` before release.
 
 ### Support / Sponsor
 
@@ -257,7 +257,8 @@ published userscript files:
 | Source | Link |
 |--------|------|
 | GreasyFork | [Install from GreasyFork](https://greasyfork.org/scripts/456055-chatgpt-exporter) |
-| GitHub raw userscript | [Install `dist/chatgpt.user.js`](https://raw.githubusercontent.com/organvm/a-i-chat--exporter/master/dist/chatgpt.user.js) |
+| GitHub Pages install site | [Open the installer](https://organvm.github.io/a-i-chat--exporter/) |
+| GitHub raw source snapshot | [`dist/chatgpt.user.js`](https://raw.githubusercontent.com/organvm/a-i-chat--exporter/master/dist/chatgpt.user.js) is useful for source inspection; public release artifacts are the GreasyFork and Pages builds because they are rebuilt with the live mint values. |
 
 The userscript metadata in [`vite.config.ts`](./vite.config.ts) matches these
 hosts: `chatgpt.com`, `chat.openai.com`, and `new.oaifree.com`. It runs on the
@@ -378,6 +379,7 @@ The package scripts are:
 | `pnpm lint:fix` | `eslint . --fix` |
 | `pnpm prepare` | `husky` |
 | `pnpm run site:build` | `node scripts/build-site.mjs --build`; rebuilds the userscript and assembles `dist-site/` |
+| `pnpm run publish:check` | Verifies `dist-site/` is armed for public Pages / GreasyFork release |
 | `pnpm run preview:site` | `node scripts/build-site.mjs && npx --yes serve dist-site -l 8080` |
 | `pnpm run deploy` | `docker compose up -d --build` |
 | `pnpm run deploy:docker` | `docker compose up -d --build` |
@@ -400,6 +402,10 @@ MINT_CHECKOUT_URL="https://your-mint.example/" \
 MINT_PUBLIC_JWK='{"kty":"EC","crv":"P-256","x":"…","y":"…"}' \
   pnpm build
 ```
+
+`VITE_EXPORTER_PUBLIC_JWK` is accepted as a compatibility alias for
+`MINT_PUBLIC_JWK`. Public release artifacts should be built with those values and
+checked with `pnpm run publish:check` before Pages or GreasyFork publication.
 
 ---
 

@@ -14,6 +14,7 @@ const mintCheckoutUrl =
 const mintPublicJwk =
     process.env.MINT_PUBLIC_JWK
     || process.env.VITE_MINT_PUBLIC_JWK
+    || process.env.VITE_EXPORTER_PUBLIC_JWK
     || ''
 
 // https://vitejs.dev/config/
@@ -43,6 +44,8 @@ export default defineConfig({
                     'zh-TW': packageJson['description:zh-TW'],
                 },
                 'license': packageJson.license,
+                'homepageURL': 'https://github.com/organvm/a-i-chat--exporter',
+                'supportURL': 'https://github.com/organvm/a-i-chat--exporter/issues',
                 'match': [
                     'https://chat.openai.com/',
                     // support https://chat.openai.com/?model={model}
