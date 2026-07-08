@@ -45,6 +45,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      # wrangler-action resolves the package manager from package.json
+      # (packageManager: pnpm), so pnpm must exist on PATH in this job too.
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: pnpm
       - name: Check for Cloudflare credentials
         id: creds
         env:
