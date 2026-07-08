@@ -68,6 +68,7 @@ function freeStatus(reason: string, payload?: LicensePayload): LicenseStatus {
 function resolveMintPublicKey(): JsonWebKey | null {
     const raw = (
         (typeof __MINT_PUBLIC_JWK__ === 'string' ? __MINT_PUBLIC_JWK__ : '')
+        || import.meta.env.VITE_EXPORTER_PUBLIC_JWK
         || import.meta.env.VITE_MINT_PUBLIC_JWK
         || ''
     ).trim()
