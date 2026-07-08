@@ -113,9 +113,9 @@ The two Pro capabilities map directly to the feature flags in the codebase (`PRO
 
 ### Plan and Status
 
-Checkout is **sovereign**: the **Buy Pro** button opens [MONETA](https://github.com/organvm/limen/tree/main/moneta) — the seller's own Bitcoin licence mint — configured via `MINT_CHECKOUT_URL` at build time. Payment goes straight to the seller (no Stripe/Lemon Squeezy/Ko-fi, no processor in the path). After payment confirms on-chain, the mint returns the signed licence key automatically; you can also paste it into the settings panel. The key is stored locally via Tampermonkey storage and verified **offline** against MONETA's public key (`MINT_PUBLIC_JWK`) — no network call, nothing a third party can revoke.
+Checkout is **sovereign**: the **Buy Pro** button opens [MONETA](https://mint.4444j99.dev) — the seller's own Bitcoin licence mint — configured via `MINT_CHECKOUT_URL` at build time. Payment goes straight to the seller (no Stripe/Lemon Squeezy/Ko-fi, no processor in the path). After payment confirms on-chain, the mint returns the signed licence key automatically; you can also paste it into the settings panel. The key is stored locally via Tampermonkey storage and verified **offline** against MONETA's public key (`MINT_PUBLIC_JWK` / `VITE_EXPORTER_PUBLIC_JWK`) — no network call, nothing a third party can revoke.
 
-> **Status — first revenue slice implemented, sovereign rail.** The Pro gate fails closed against an offline MONETA-signed key, captures checkout-return license keys, scrubs license material from the URL, and gates bulk / multi-provider export through `PRO_FEATURES`. Revenue deploys now fail closed unless production `MINT_CHECKOUT_URL` + `MINT_PUBLIC_JWK` values are wired at build time; live Claude/Gemini extraction remains foundation-only — see [Architecture: providers](#architecture-providers).
+> **Status — first revenue slice implemented, sovereign rail.** The Pro gate fails closed against an offline MONETA-signed key, captures checkout-return license keys, scrubs license material from the URL, and gates bulk / multi-provider export through `PRO_FEATURES`. Revenue deploys fail closed unless production `MINT_CHECKOUT_URL` + `MINT_PUBLIC_JWK` values are wired at build time, and the tracked userscript distribution is built against `https://mint.4444j99.dev`; live Claude/Gemini extraction remains foundation-only — see [Architecture: providers](#architecture-providers).
 
 ### Support / Sponsor
 
@@ -400,7 +400,7 @@ Set `MINT_CHECKOUT_URL` (the deployed MONETA storefront) and `MINT_PUBLIC_JWK`
 landing-page CTA, and offline licence verification:
 
 ```bash
-MINT_CHECKOUT_URL="https://your-mint.example/" \
+MINT_CHECKOUT_URL="https://mint.4444j99.dev" \
 MINT_PUBLIC_JWK='{"kty":"EC","crv":"P-256","x":"…","y":"…"}' \
   pnpm run build
 ```
