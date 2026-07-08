@@ -54,18 +54,18 @@ pnpm run preview:site       # build + serve at http://localhost:8080
 Checkout runs through [MONETA](https://github.com/organvm/limen/tree/main/moneta), the seller's own
 Bitcoin licence mint — **no third-party processor**. Set two **public** build-time values:
 
-- `MINT_CHECKOUT_URL` — the deployed MONETA storefront (its `GET /` page), e.g. `https://your-mint.example/`.
+- `MINT_CHECKOUT_URL` — the deployed MONETA storefront (its `GET /` page), e.g. `https://mint.4444j99.dev`.
   Enables the in-app **Buy Pro** button and the landing-page CTA.
-- `MINT_PUBLIC_JWK` — the mint's ECDSA P-256 public key (from `GET /pubkey`). Enables **offline** licence
-  verification, so a purchased key unlocks Pro with zero network calls.
+- `MINT_PUBLIC_JWK` / `VITE_EXPORTER_PUBLIC_JWK` — the mint's ECDSA P-256 public key (from `GET /pubkey`).
+  Enables **offline** licence verification, so a purchased key unlocks Pro with zero network calls.
 
 Both are public (a URL and a public key); neither is a secret. They are stored
 as deployment secrets so production builds can inject the current MONETA rail
 without hardcoding a checkout host or key in the repo.
 
 ```bash
-MINT_CHECKOUT_URL="https://your-mint.example/" \
-MINT_PUBLIC_JWK='{"kty":"EC","crv":"P-256","x":"…","y":"…"}' \
+MINT_CHECKOUT_URL="https://mint.4444j99.dev" \
+VITE_EXPORTER_PUBLIC_JWK='{"kty":"EC","crv":"P-256","x":"...","y":"..."}' \
   pnpm run build
 ```
 

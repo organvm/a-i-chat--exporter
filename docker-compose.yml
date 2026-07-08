@@ -8,6 +8,7 @@ services:
       args:
         MINT_CHECKOUT_URL: ${MINT_CHECKOUT_URL:-}
         MINT_PUBLIC_JWK: ${MINT_PUBLIC_JWK:-}
+        VITE_EXPORTER_PUBLIC_JWK: ${VITE_EXPORTER_PUBLIC_JWK:-}
     image: chatgpt-exporter:local
     container_name: chatgpt-exporter
     ports:

@@ -13,6 +13,7 @@ const mintCheckoutUrl =
 
 const mintPublicJwk =
     process.env.MINT_PUBLIC_JWK
+    || process.env.VITE_EXPORTER_PUBLIC_JWK
     || process.env.VITE_MINT_PUBLIC_JWK
     || ''
 
