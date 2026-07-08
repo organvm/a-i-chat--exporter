@@ -29,8 +29,8 @@ jobs:
           node-version: '20'
           cache: pnpm
       - run: pnpm install --no-frozen-lockfile
-      - name: Build static site
-        run: pnpm run site:build
+      - name: Build revenue-armed static site
+        run: pnpm run site:build:revenue
         env:
           MINT_CHECKOUT_URL: ${{ secrets.MINT_CHECKOUT_URL }}
           MINT_PUBLIC_JWK: ${{ secrets.MINT_PUBLIC_JWK }}
@@ -101,5 +101,6 @@ jobs:
           build-args: |
             MINT_CHECKOUT_URL=${{ secrets.MINT_CHECKOUT_URL }}
             MINT_PUBLIC_JWK=${{ secrets.MINT_PUBLIC_JWK }}
+            REQUIRE_PRO_CHECKOUT=1
           cache-from: type=gha
           cache-to: type=gha,mode=max
