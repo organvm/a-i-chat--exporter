@@ -62,6 +62,7 @@ Bitcoin licence mint — **no third-party processor**. Set two **public** build-
 Both are public (a URL and a public key); neither is a secret. They are stored
 as deployment secrets so production builds can inject the current MONETA rail
 without hardcoding a checkout host or key in the repo.
+`VITE_EXPORTER_PUBLIC_JWK` is accepted as a compatibility alias for `MINT_PUBLIC_JWK`.
 
 ```bash
 MINT_CHECKOUT_URL="https://mint.4444j99.dev" \
@@ -73,6 +74,15 @@ For local preview builds, missing values fall back to the support section so the
 site can still be inspected. Revenue deploys use `pnpm run site:build:revenue`
 or `REQUIRE_PRO_CHECKOUT=1`; those builds fail closed unless both values are
 present and the public JWK parses as an ECDSA P-256 public key.
+
+Before publishing a public artifact to Pages or GreasyFork, run:
+
+```bash
+pnpm run publish:check
+```
+
+The check fails if the generated `dist-site/` userscript or landing page was
+built without the mint checkout URL and public verify key.
 
 ---
 
@@ -108,7 +118,21 @@ the output directory (`dist-site`), and the userscript content-type header. You 
 also import the repo in the Vercel dashboard; set `MINT_CHECKOUT_URL` and
 `MINT_PUBLIC_JWK` in the project environment before using it as a revenue deploy.
 
-## Option 3 — Cloudflare Pages
+## Option 3 — GitHub Pages
+
+The GitHub Actions deploy workflow publishes the assembled `dist-site/` directory
+to GitHub Pages on pushes to `master` and on manual `workflow_dispatch` runs. The
+public install site is:
+
+```text
+https://organvm.github.io/a-i-chat--exporter/
+```
+
+The workflow uploads the same `dist-site/` artifact used by Vercel, Docker, and
+Cloudflare, then deploys it with `actions/deploy-pages`. Public deploys run
+`pnpm run publish:check`, so an empty-mint build fails before it reaches Pages.
+
+## Option 4 — Cloudflare Pages
 
 Cloudflare Pages authenticates with a **scoped API token**, not an interactive login.
 Mint one at **Cloudflare Dashboard → My Profile → API Tokens** and pass it via the
@@ -125,8 +149,8 @@ Setting `CLOUDFLARE_API_TOKEN` makes wrangler run headless — the same way the 
 Actions deploy authenticates, so it's one credential pattern for local and CI alike.
 
 The `_headers` file in `dist-site/` sets the userscript content-type. For
-dashboard-based Pages projects, use build command `pnpm run site:build` and output
-directory `dist-site`.
+dashboard-based Pages projects, use build command `pnpm run site:build:revenue`
+and output directory `dist-site`.
 
 ---
 
@@ -134,26 +158,27 @@ directory `dist-site`.
 
 On every push to `master` (and via the **Actions → Deploy → Run workflow** button):
 
-1. **build-site** — builds revenue-armed `dist-site/` and uploads it as a workflow artifact.
-2. **deploy-cloudflare** — deploys to Cloudflare Pages **only if** the repo secrets
+1. **build-site** — builds revenue-armed `dist-site/`, verifies the publish artifact, and uploads it as a workflow artifact.
+2. **deploy-github-pages** — deploys the verified `dist-site/` artifact to GitHub Pages.
+3. **deploy-cloudflare** — deploys to Cloudflare Pages **only if** the repo secrets
    `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are set (otherwise skipped
    with a notice).
-3. **docker** — builds and pushes the image to
+4. **docker** — builds and pushes the image to
    `ghcr.io/<owner>/<repo>:latest` using the built-in `GITHUB_TOKEN`.
 
-### Required secrets
+### Required revenue values
 
-| Secret              | Needed for                         |
-| ------------------- | ---------------------------------- |
-| `MINT_CHECKOUT_URL` | Revenue-armed deploy artifact      |
-| `MINT_PUBLIC_JWK`   | Offline Pro license verification   |
+| Value                                      | Needed for                              |
+| ------------------------------------------ | --------------------------------------- |
+| `MINT_CHECKOUT_URL` / `VITE_MINT_CHECKOUT_URL` | Public Pages, Docker, and GreasyFork artifacts |
+| `MINT_PUBLIC_JWK` / `VITE_EXPORTER_PUBLIC_JWK` | Public Pages, Docker, and GreasyFork artifacts |
 
 ### Optional deployment secrets
 
-| Secret                  | Needed for             |
-| ----------------------- | ---------------------- |
-| `CLOUDFLARE_API_TOKEN`  | Cloudflare Pages deploy |
-| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare Pages deploy |
+| Value                                      | Needed for                              |
+| ------------------------------------------ | --------------------------------------- |
+| `CLOUDFLARE_API_TOKEN`                    | Cloudflare Pages deploy                 |
+| `CLOUDFLARE_ACCOUNT_ID`                   | Cloudflare Pages deploy                 |
 
 The GHCR image publish uses the built-in `GITHUB_TOKEN`, but its image build is
 also gated by `MINT_CHECKOUT_URL` and `MINT_PUBLIC_JWK`.

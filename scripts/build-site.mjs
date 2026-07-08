@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* global process, URL */
 /**
  * build-site.mjs — assemble the static deploy directory for ChatGPT Exporter.
  *
@@ -34,6 +35,7 @@ const checkoutUrlInput =
   || ''
 const mintPublicJwk =
   (process.env.MINT_PUBLIC_JWK
+  || process.env.VITE_EXPORTER_PUBLIC_JWK
   || process.env.VITE_MINT_PUBLIC_JWK
   || '').trim()
 const proCheckoutUrl = normalizeCheckoutInputUrl(checkoutUrlInput)
@@ -99,7 +101,7 @@ function assertProCheckoutConfig() {
     throw new Error([
       'Revenue checkout is not armed.',
       ...details.map(detail => `- ${detail}`),
-      'Set MINT_CHECKOUT_URL to the deployed MONETA storefront and MINT_PUBLIC_JWK to its /pubkey value.',
+      'Set MINT_CHECKOUT_URL to the deployed MONETA storefront and MINT_PUBLIC_JWK / VITE_EXPORTER_PUBLIC_JWK to its /pubkey value.',
     ].join('\n'))
   }
 }

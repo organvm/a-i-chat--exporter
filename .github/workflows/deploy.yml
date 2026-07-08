@@ -17,6 +17,8 @@ on:
 permissions:
   contents: read
   packages: write
+  pages: write
+  id-token: write
 
 jobs:
   build-site:
@@ -32,14 +34,36 @@ jobs:
       - name: Build revenue-armed static site
         run: pnpm run site:build:revenue
         env:
-          MINT_CHECKOUT_URL: ${{ secrets.MINT_CHECKOUT_URL }}
-          MINT_PUBLIC_JWK: ${{ secrets.MINT_PUBLIC_JWK }}
-          VITE_EXPORTER_PUBLIC_JWK: ${{ secrets.VITE_EXPORTER_PUBLIC_JWK }}
+          MINT_CHECKOUT_URL: ${{ secrets.MINT_CHECKOUT_URL || secrets.VITE_MINT_CHECKOUT_URL }}
+          VITE_MINT_CHECKOUT_URL: ${{ secrets.VITE_MINT_CHECKOUT_URL || secrets.MINT_CHECKOUT_URL }}
+          MINT_PUBLIC_JWK: ${{ secrets.MINT_PUBLIC_JWK || secrets.VITE_EXPORTER_PUBLIC_JWK }}
+          VITE_EXPORTER_PUBLIC_JWK: ${{ secrets.VITE_EXPORTER_PUBLIC_JWK || secrets.MINT_PUBLIC_JWK }}
+      - name: Verify public publish artifact
+        run: pnpm run publish:check
+        env:
+          MINT_CHECKOUT_URL: ${{ secrets.MINT_CHECKOUT_URL || secrets.VITE_MINT_CHECKOUT_URL }}
+          VITE_MINT_CHECKOUT_URL: ${{ secrets.VITE_MINT_CHECKOUT_URL || secrets.MINT_CHECKOUT_URL }}
+          MINT_PUBLIC_JWK: ${{ secrets.MINT_PUBLIC_JWK || secrets.VITE_EXPORTER_PUBLIC_JWK }}
+          VITE_EXPORTER_PUBLIC_JWK: ${{ secrets.VITE_EXPORTER_PUBLIC_JWK || secrets.MINT_PUBLIC_JWK }}
       - uses: actions/upload-artifact@v7
         with:
           name: chatgpt-exporter-site
           path: dist-site
           if-no-files-found: error
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist-site
+
+  deploy-github-pages:
+    needs: build-site
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
 
   deploy-cloudflare:
     needs: build-site
@@ -100,9 +124,9 @@ jobs:
             ghcr.io/${{ github.repository }}:latest
             ghcr.io/${{ github.repository }}:${{ github.sha }}
           build-args: |
-            MINT_CHECKOUT_URL=${{ secrets.MINT_CHECKOUT_URL }}
-            MINT_PUBLIC_JWK=${{ secrets.MINT_PUBLIC_JWK }}
+            MINT_CHECKOUT_URL=${{ secrets.MINT_CHECKOUT_URL || secrets.VITE_MINT_CHECKOUT_URL }}
+            MINT_PUBLIC_JWK=${{ secrets.MINT_PUBLIC_JWK || secrets.VITE_EXPORTER_PUBLIC_JWK }}
             REQUIRE_PRO_CHECKOUT=1
-            VITE_EXPORTER_PUBLIC_JWK=${{ secrets.VITE_EXPORTER_PUBLIC_JWK }}
+            VITE_EXPORTER_PUBLIC_JWK=${{ secrets.VITE_EXPORTER_PUBLIC_JWK || secrets.MINT_PUBLIC_JWK }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
