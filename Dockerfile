@@ -21,8 +21,10 @@ COPY . .
 # Both are PUBLIC values injected at build time (no secret in the image).
 ARG MINT_CHECKOUT_URL
 ARG MINT_PUBLIC_JWK
+ARG REQUIRE_PRO_CHECKOUT=false
 ENV MINT_CHECKOUT_URL=$MINT_CHECKOUT_URL
 ENV MINT_PUBLIC_JWK=$MINT_PUBLIC_JWK
+ENV REQUIRE_PRO_CHECKOUT=$REQUIRE_PRO_CHECKOUT
 RUN pnpm run site:build
 
 # ---- Stage 2: runtime ----

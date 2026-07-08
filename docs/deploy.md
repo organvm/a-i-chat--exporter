@@ -41,6 +41,7 @@ Build it on its own with:
 
 ```bash
 pnpm run site:build         # → dist-site/
+pnpm run site:build:revenue # → dist-site/, but fail unless MONETA checkout is armed
 pnpm run preview:site       # build + serve at http://localhost:8080
 ```
 
@@ -58,7 +59,9 @@ Bitcoin licence mint — **no third-party processor**. Set two **public** build-
 - `MINT_PUBLIC_JWK` — the mint's ECDSA P-256 public key (from `GET /pubkey`). Enables **offline** licence
   verification, so a purchased key unlocks Pro with zero network calls.
 
-Both are public (a URL and a public key); neither is a secret.
+Both are public (a URL and a public key); neither is a secret. They are stored
+as deployment secrets so production builds can inject the current MONETA rail
+without hardcoding a checkout host or key in the repo.
 
 ```bash
 MINT_CHECKOUT_URL="https://your-mint.example/" \
@@ -66,8 +69,10 @@ MINT_PUBLIC_JWK='{"kty":"EC","crv":"P-256","x":"…","y":"…"}' \
   pnpm run build
 ```
 
-When this value is empty, the Pro gate still verifies pasted license keys, but
-the in-app checkout button stays disabled.
+For local preview builds, missing values fall back to the support section so the
+site can still be inspected. Revenue deploys use `pnpm run site:build:revenue`
+or `REQUIRE_PRO_CHECKOUT=1`; those builds fail closed unless both values are
+present and the public JWK parses as an ECDSA P-256 public key.
 
 ---
 
@@ -98,9 +103,10 @@ npx vercel login        # once
 pnpm run deploy:vercel  # vercel deploy --prod
 ```
 
-[`vercel.json`](../vercel.json) declares the build command (`pnpm run site:build`),
+[`vercel.json`](../vercel.json) declares the build command (`pnpm run site:build:revenue`),
 the output directory (`dist-site`), and the userscript content-type header. You can
-also import the repo in the Vercel dashboard — no extra config needed.
+also import the repo in the Vercel dashboard; set `MINT_CHECKOUT_URL` and
+`MINT_PUBLIC_JWK` in the project environment before using it as a revenue deploy.
 
 ## Option 3 — Cloudflare Pages
 
@@ -110,7 +116,9 @@ environment — the same `CLOUDFLARE_API_TOKEN` the CI deploy uses (see below):
 
 ```bash
 export CLOUDFLARE_API_TOKEN=…   # scoped token — headless, no `wrangler login`
-pnpm run deploy:cloudflare      # wrangler pages deploy dist-site --project-name chatgpt-exporter
+MINT_CHECKOUT_URL="https://your-mint.example/" \
+MINT_PUBLIC_JWK='{"kty":"EC","crv":"P-256","x":"…","y":"…"}' \
+  pnpm run deploy:cloudflare    # builds revenue-armed dist-site, then deploys
 ```
 
 Setting `CLOUDFLARE_API_TOKEN` makes wrangler run headless — the same way the GitHub
@@ -126,21 +134,29 @@ directory `dist-site`.
 
 On every push to `master` (and via the **Actions → Deploy → Run workflow** button):
 
-1. **build-site** — builds `dist-site/` and uploads it as a workflow artifact.
+1. **build-site** — builds revenue-armed `dist-site/` and uploads it as a workflow artifact.
 2. **deploy-cloudflare** — deploys to Cloudflare Pages **only if** the repo secrets
    `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are set (otherwise skipped
    with a notice).
 3. **docker** — builds and pushes the image to
    `ghcr.io/<owner>/<repo>:latest` using the built-in `GITHUB_TOKEN`.
 
-### Required secrets (optional integrations)
+### Required secrets
+
+| Secret              | Needed for                         |
+| ------------------- | ---------------------------------- |
+| `MINT_CHECKOUT_URL` | Revenue-armed deploy artifact      |
+| `MINT_PUBLIC_JWK`   | Offline Pro license verification   |
+
+### Optional deployment secrets
 
 | Secret                  | Needed for             |
 | ----------------------- | ---------------------- |
 | `CLOUDFLARE_API_TOKEN`  | Cloudflare Pages deploy |
 | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare Pages deploy |
 
-The GHCR image publish needs no extra secrets.
+The GHCR image publish uses the built-in `GITHUB_TOKEN`, but its image build is
+also gated by `MINT_CHECKOUT_URL` and `MINT_PUBLIC_JWK`.
 
 ---
 
