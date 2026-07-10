@@ -3,8 +3,8 @@
 Prepared for immediate posting across Show HN, Reddit, and X.
 
 Current release: v2.29.1  
-Repository: https://github.com/organvm-iii-ergon/a-i-chat--exporter  
-Install: https://greasyfork.org/scripts/456055-chatgpt-exporter
+Repository: https://github.com/organvm/a-i-chat--exporter<br>
+Install: https://chatgpt-exporter-e08.pages.dev/
 
 ---
 
@@ -45,7 +45,7 @@ This is implemented as a single TypeScript + Preact userscript (~870KB bundled; 
 If you already keep research, coding notes, or customer-support transcripts in ChatGPT, this is meant to be boringly practical: get the data out in a useful shape, on your machine, without account handoffs.
 
 Install:
-https://greasyfork.org/scripts/456055-chatgpt-exporter
+https://chatgpt-exporter-e08.pages.dev/
 
 ---
 
@@ -74,10 +74,10 @@ What Pro currently unlocks:
 I built it to solve everyday "knowledge preservation" work: people who use ChatGPT for research notes, code planning, writing, and customer-facing work often need durable output that their existing tooling can handle.
 
 Install:
-https://greasyfork.org/scripts/456055-chatgpt-exporter
+https://chatgpt-exporter-e08.pages.dev/
 
 Source:
-https://github.com/organvm-iii-ergon/a-i-chat--exporter
+https://github.com/organvm/a-i-chat--exporter
 
 ---
 
@@ -87,7 +87,7 @@ https://github.com/organvm-iii-ergon/a-i-chat--exporter
 I shipped ChatGPT Exporter (v2.29.1): a browser userscript to export ChatGPT conversations into Markdown, HTML, JSON, PNG, or plain text.  
 Free tier covers single-conversation export. Pro adds bulk/JSON import/project-scoped and conversion workflows.  
 Runs locally in your browser, no backend, no data upload.  
-Install: https://greasyfork.org/scripts/456055-chatgpt-exporter
+Install: https://chatgpt-exporter-e08.pages.dev/
 
 ### Variant B (thread starter)
 1/ I added a Build-in-Public release: ChatGPT Exporter now supports practical conversation export workflows for real users.
@@ -99,6 +99,5 @@ Everything local, no account, no cloud upload.
 
 4/ Free/open tier stays on single-conversation exports; Pro is for people exporting at scale.
 
-5/ Install: https://greasyfork.org/scripts/456055-chatgpt-exporter  
-Code: https://github.com/organvm-iii-ergon/a-i-chat--exporter
-
+5/ Install: https://chatgpt-exporter-e08.pages.dev/<br>
+Code: https://github.com/organvm/a-i-chat--exporter
