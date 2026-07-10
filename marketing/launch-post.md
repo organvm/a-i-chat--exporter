@@ -77,7 +77,7 @@ Install:
 https://chatgpt-exporter-e08.pages.dev/
 
 Source:
-https://github.com/organvm-iii-ergon/a-i-chat--exporter
+https://github.com/organvm/a-i-chat--exporter
 
 ---
 
@@ -99,6 +99,5 @@ Everything local, no account, no cloud upload.
 
 4/ Free/open tier stays on single-conversation exports; Pro is for people exporting at scale.
 
-5/ Install: https://chatgpt-exporter-e08.pages.dev/  
-Code: https://github.com/organvm-iii-ergon/a-i-chat--exporter
-
+5/ Install: https://chatgpt-exporter-e08.pages.dev/<br>
+Code: https://github.com/organvm/a-i-chat--exporter
