@@ -50,7 +50,7 @@ jobs:
           name: chatgpt-exporter-site
           path: dist-site
           if-no-files-found: error
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: dist-site
 
@@ -63,7 +63,7 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
   deploy-cloudflare:
     needs: build-site
