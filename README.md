@@ -1,16 +1,16 @@
-[![ORGAN-III: Ergon](https://img.shields.io/badge/ORGAN--III-Ergon-1b5e20?style=flat-square)](https://github.com/organvm-iii-ergon)
+[![ORGAN-III: Ergon](https://img.shields.io/badge/ORGAN--III-Ergon-1b5e20?style=flat-square)](https://github.com/organvm)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](./LICENSE)
-[![GreasyFork](https://img.shields.io/badge/GreasyFork-Install-960000?style=flat-square)](https://greasyfork.org/scripts/456055-chatgpt-exporter)
+[![Install](https://img.shields.io/badge/Pages-Install-0f766e?style=flat-square)](https://chatgpt-exporter-e08.pages.dev/chatgpt.user.js)
 
 # ChatGPT Exporter
 
-[![CI](https://github.com/organvm-iii-ergon/a-i-chat--exporter/actions/workflows/ci.yml/badge.svg)](https://github.com/organvm-iii-ergon/a-i-chat--exporter/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/badge/coverage-pending-lightgrey)](https://github.com/organvm-iii-ergon/a-i-chat--exporter)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/organvm-iii-ergon/a-i-chat--exporter/blob/main/LICENSE)
-[![Organ III](https://img.shields.io/badge/Organ-III%20Ergon-F59E0B)](https://github.com/organvm-iii-ergon)
-[![Status](https://img.shields.io/badge/status-active-brightgreen)](https://github.com/organvm-iii-ergon/a-i-chat--exporter)
-[![TypeScript](https://img.shields.io/badge/lang-TypeScript-informational)](https://github.com/organvm-iii-ergon/a-i-chat--exporter)
+[![Check](https://github.com/organvm/a-i-chat--exporter/actions/workflows/check.yml/badge.svg)](https://github.com/organvm/a-i-chat--exporter/actions/workflows/check.yml)
+[![Coverage](https://img.shields.io/badge/coverage-pending-lightgrey)](https://github.com/organvm/a-i-chat--exporter)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/organvm/a-i-chat--exporter/blob/master/LICENSE)
+[![Organ III](https://img.shields.io/badge/Organ-III%20Ergon-F59E0B)](https://github.com/organvm)
+[![Status](https://img.shields.io/badge/status-active-brightgreen)](https://github.com/organvm/a-i-chat--exporter)
+[![TypeScript](https://img.shields.io/badge/lang-TypeScript-informational)](https://github.com/organvm/a-i-chat--exporter)
 
 
 **A browser userscript that exports your entire ChatGPT conversation history into portable, archival-quality formats — Markdown, HTML, JSON, PNG, and plain text.**
@@ -49,7 +49,7 @@ ChatGPT Exporter lives inside ORGAN-III (Ergon), the commerce and product organ 
 
 ChatGPT Exporter is a [Tampermonkey](https://www.tampermonkey.net/) userscript — a small program that runs inside your browser and augments the ChatGPT web interface with export functionality that OpenAI does not natively provide. Once installed, it injects a menu into the ChatGPT sidebar that lets you export any conversation in five formats: Markdown with YAML front matter, styled HTML with dark-mode support, raw JSON matching the ChatGPT API schema, PNG screenshots of the full conversation thread, and plain text copied to your clipboard.
 
-The tool is also available through [GreasyFork](https://greasyfork.org/scripts/456055-chatgpt-exporter), the largest public userscript repository, where it is one of the highest-traffic ChatGPT utility scripts.
+This fork's owned install path is the Cloudflare Pages userscript artifact, with GitHub raw as the source fallback. The original upstream [GreasyFork listing](https://greasyfork.org/scripts/456055-chatgpt-exporter) belongs to `pionxzh`; an owned GreasyFork sync listing is staged in [`docs/greasyfork-listing.md`](./docs/greasyfork-listing.md) and should not be treated as live distribution until that human sign-in gate is cleared.
 
 ### What It Does
 
@@ -82,7 +82,7 @@ The design philosophy is zero-friction: no accounts, no servers, no cloud depend
 
 ## Pricing and Monetization
 
-ChatGPT Exporter is **free and open-source** at its core. The userscript installs from GreasyFork or GitHub, runs entirely in your browser, and never asks for an account. There is no paywall on the everyday workflow: opening a conversation and exporting it to Markdown, HTML, JSON, PNG, or text is — and stays — free.
+ChatGPT Exporter is **free and open-source** at its core. The userscript installs from the owned Pages artifact or GitHub raw, runs entirely in your browser, and never asks for an account. There is no paywall on the everyday workflow: opening a conversation and exporting it to Markdown, HTML, JSON, PNG, or text is — and stays — free.
 
 The project sustains itself through a two-tier model. The free tier covers the individual export workflow that the overwhelming majority of users need. A paid **Pro** tier covers the heavier, batch-oriented workflows guarded by the `bulk-export` and `multi-provider-export` feature flags.
 
@@ -258,9 +258,10 @@ published userscript files:
 
 | Source | Link |
 |--------|------|
-| GreasyFork | [Install from GreasyFork](https://greasyfork.org/scripts/456055-chatgpt-exporter) |
-| GitHub Pages install site | [Open the installer](https://organvm.github.io/a-i-chat--exporter/) |
-| GitHub raw source snapshot | [`dist/chatgpt.user.js`](https://raw.githubusercontent.com/organvm/a-i-chat--exporter/master/dist/chatgpt.user.js) is useful for source inspection; public release artifacts are the GreasyFork and Pages builds because they are rebuilt with the live mint values. |
+| Owned install page | [Open the install page](https://chatgpt-exporter-e08.pages.dev/) |
+| Owned userscript artifact | [Install `chatgpt.user.js`](https://chatgpt-exporter-e08.pages.dev/chatgpt.user.js) |
+| GitHub raw userscript | [Install `dist/chatgpt.user.js`](https://raw.githubusercontent.com/organvm/a-i-chat--exporter/master/dist/chatgpt.user.js) |
+| GreasyFork sync listing | [Staged packet, not live distribution](./docs/greasyfork-listing.md) |
 
 The userscript metadata in [`vite.config.ts`](./vite.config.ts) matches these
 hosts: `chatgpt.com`, `chat.openai.com`, and `new.oaifree.com`. It runs on the
@@ -458,7 +459,7 @@ The development and maintenance of this tool provides material for ORGAN-V's bui
 - **[pionxzh/chatgpt-exporter](https://github.com/pionxzh/chatgpt-exporter)** — Upstream source. This fork is maintained within ORGAN-III for integration into the organvm product portfolio.
 - **[SillyTavern](https://github.com/SillyTavern/SillyTavern)** — Character-chat frontend compatible with the TavernAI export format.
 - **[text-generation-webui](https://github.com/oobabooga/text-generation-webui)** — Gradio-based LLM interface compatible with the Ooba export format.
-- **[GreasyFork](https://greasyfork.org/scripts/456055-chatgpt-exporter)** — Primary distribution channel for the userscript.
+- **[GreasyFork](./docs/greasyfork-listing.md)** — Owned sync listing packet staged for publication. The live `456055` listing is upstream-owned and is not this fork's revenue channel.
 
 ---
 
@@ -483,6 +484,6 @@ Contributions are welcome. See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup in
 
 ## Author
 
-Maintained by [@4444j99](https://github.com/4444j99) as part of [ORGAN-III: Ergon](https://github.com/organvm-iii-ergon) -- the commerce and product organ of the organvm system.
+Maintained by [@4444j99](https://github.com/4444j99) as part of [ORGAN-III: Ergon](https://github.com/organvm) -- the commerce and product organ of the organvm system.
 
 Original work by [Pionxzh](https://github.com/pionxzh).
