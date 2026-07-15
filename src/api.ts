@@ -936,6 +936,7 @@ export interface ConversationResult {
     createTime: number
     updateTime: number
     conversationNodes: ConversationNode[]
+    sourceUrl?: string
     projectName?: string
     projectId?: string
 }
