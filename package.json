@@ -55,7 +55,7 @@
     "preact": "^10.29.7",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "react-i18next": "^17.0.9",
+    "react-i18next": "^17.0.10",
     "sanitize-filename": "^1.6.4",
     "sentinel-js": "^0.0.7",
     "urlcat": "^3.1.0",
@@ -76,9 +76,9 @@
     "katex": "^0.17.0",
     "lint-staged": "^17.0.8",
     "react": "^19.2.7",
-    "typescript": "^6.0.3",
+    "typescript": "^7.0.2",
     "typescript-eslint": "^8.63.0",
-    "vite": "^8.1.4",
+    "vite": "^8.1.5",
     "vitest": "4.1.10"
   },
   "lint-staged": {
