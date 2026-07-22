@@ -6,17 +6,24 @@ import packageJson from './package.json'
 // MONETA sovereign checkout, injected at build time. The checkout URL points at
 // the mint's own storefront (GET / on the deployed MONETA); the public JWK comes
 // from the mint's /pubkey and enables offline licence verification. No processor.
+//
+// Both values are PUBLIC (the storefront and /pubkey are served openly), so the
+// live production mint is the factory default — a zero-env build ships armed. An
+// env override still wins for a fork, a staging mint, or local testing.
+const MINT_CHECKOUT_URL_DEFAULT = 'https://mint.4444j99.dev/'
+const MINT_PUBLIC_JWK_DEFAULT
+    = '{"kty":"EC","crv":"P-256","x":"JJ3bVBZP3OEXXQg9ENBUXfB9wtrYh0llWjU4HTNwbvM","y":"RwotkzzrDYc06ZrxOyCgkcFXAb_Ip1F06SyGO1N3-II","key_ops":["verify"],"ext":true}'
+
 const mintCheckoutUrl =
     process.env.MINT_CHECKOUT_URL
     || process.env.VITE_MINT_CHECKOUT_URL
-    || ''
+    || MINT_CHECKOUT_URL_DEFAULT
 
 const mintPublicJwk =
     process.env.MINT_PUBLIC_JWK
     || process.env.VITE_EXPORTER_PUBLIC_JWK
     || process.env.VITE_MINT_PUBLIC_JWK
-    || process.env.VITE_EXPORTER_PUBLIC_JWK
-    || ''
+    || MINT_PUBLIC_JWK_DEFAULT
 
 // https://vitejs.dev/config/
 export default defineConfig({
