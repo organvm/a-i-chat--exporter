@@ -23,11 +23,14 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const userscript = join(root, 'dist', 'chatgpt.user.js')
 const outDir = join(root, 'dist-site')
 const forceBuild = process.argv.includes('--build')
+// Factory default = the live MONETA mint (self-custodied BTC checkout, no
+// processor). An env override still wins for local/testing builds.
+const MINT_CHECKOUT_URL = 'https://mint.4444j99.dev/'
 const proCheckoutUrl = normalizeCheckoutInputUrl(
   process.env.LEMONSQUEEZY_STORE_ID
   || process.env.VITE_LEMONSQUEEZY_STORE_ID
   || process.env.VITE_LEMON_SQUEEZY_CHECKOUT_URL
-  || '',
+  || MINT_CHECKOUT_URL,
 )
 
 function log(msg) {

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+    EXPORTER_PUBLIC_KEY_JWK,
     PRO_FEATURE_BULK_EXPORT,
     PRO_FEATURE_MULTI_PROVIDER,
     buildCheckoutReturnUrl,
@@ -163,13 +164,28 @@ describe('verifySignedLicense (offline)', () => {
         expect(status.reason).toBe('not-pro')
     })
 
-    it('fails closed when no public key is configured', async () => {
+    it('fails closed for a pro licence not signed by the embedded mint key', async () => {
+        // A pro licence signed by SOME OTHER key must never unlock Pro when verified
+        // against the embedded MONETA mint key (the default used when no key is passed).
         const { privateKey } = await makeKeyPair()
         const key = await signLicense({ tier: 'pro' }, privateKey)
 
         const status = await verifySignedLicense(key, { now: NOW_MS })
         expect(status.valid).toBe(false)
-        expect(status.reason).toBe('crypto-unavailable')
+        expect(status.reason).toBe('bad-signature')
+    })
+
+    it('embeds the live MONETA mint public key (guards against a null-key regression)', () => {
+        // Regression guard: if EXPORTER_PUBLIC_KEY_JWK ever reverts to null, every paid
+        // (mint-signed) licence silently fails closed — a paying customer would not get
+        // Pro, with no BTC refund path. Pin the published mint key coordinates.
+        expect(EXPORTER_PUBLIC_KEY_JWK).not.toBeNull()
+        expect(EXPORTER_PUBLIC_KEY_JWK).toMatchObject({
+            kty: 'EC',
+            crv: 'P-256',
+            x: 'JJ3bVBZP3OEXXQg9ENBUXfB9wtrYh0llWjU4HTNwbvM',
+            y: 'RwotkzzrDYc06ZrxOyCgkcFXAb_Ip1F06SyGO1N3-II',
+        })
     })
 })
 

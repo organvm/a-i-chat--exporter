@@ -3,7 +3,10 @@ import { defineConfig } from 'vite'
 import monkey, { cdn } from 'vite-plugin-monkey'
 import packageJson from './package.json'
 
-const lemonSqueezyStoreId = process.env.LEMONSQUEEZY_STORE_ID ?? ''
+// Factory default = the live MONETA mint (self-custodied BTC checkout, no
+// processor). An env override still wins for local/testing builds.
+const MINT_CHECKOUT_URL = 'https://mint.4444j99.dev/'
+const lemonSqueezyStoreId = process.env.LEMONSQUEEZY_STORE_ID?.trim() || MINT_CHECKOUT_URL
 
 // https://vitejs.dev/config/
 export default defineConfig({

@@ -61,11 +61,37 @@ function freeStatus(reason: string, payload?: LicensePayload): LicenseStatus {
 }
 
 /**
- * Embedded vendor public key (ECDSA P-256, JWK) used to verify signed keys.
- * Replace with the real production key before release; `null` disables the
- * offline path and forces online validation only.
+ * Embedded MONETA mint verify key (ECDSA P-256, JWK). This is the PUBLIC key —
+ * non-secret, served openly at https://mint.4444j99.dev/pubkey — so it is safe to
+ * bake into the build. Offline verification checks a paid licence's signature
+ * against it, so Pro unlocks with no network call and no processor in the path.
+ *
+ * Rotate via the `VITE_EXPORTER_PUBLIC_JWK` build env (a JSON string); when unset
+ * or malformed, the embedded key below is used.
  */
-export const EXPORTER_PUBLIC_KEY_JWK: JsonWebKey | null = null
+const EMBEDDED_MINT_PUBLIC_JWK: JsonWebKey = {
+    kty: 'EC',
+    crv: 'P-256',
+    x: 'JJ3bVBZP3OEXXQg9ENBUXfB9wtrYh0llWjU4HTNwbvM',
+    y: 'RwotkzzrDYc06ZrxOyCgkcFXAb_Ip1F06SyGO1N3-II',
+    key_ops: ['verify'],
+    ext: true,
+}
+
+function resolvePublicKeyJwk(): JsonWebKey {
+    const raw = (import.meta.env.VITE_EXPORTER_PUBLIC_JWK ?? '').toString().trim()
+    if (raw) {
+        try {
+            return JSON.parse(raw) as JsonWebKey
+        }
+        catch {
+            // Malformed override — fall back to the embedded key rather than break verify.
+        }
+    }
+    return EMBEDDED_MINT_PUBLIC_JWK
+}
+
+export const EXPORTER_PUBLIC_KEY_JWK: JsonWebKey | null = resolvePublicKeyJwk()
 
 const LEMON_SQUEEZY_VALIDATE_URL = 'https://api.lemonsqueezy.com/v1/licenses/validate'
 
