@@ -10,6 +10,8 @@
 // @description:zh-TW  輕鬆匯出 ChatGPT 聊天紀錄，以便進一步分析或分享。
 // @license            MIT
 // @icon               https://chat.openai.com/favicon.ico
+// @homepageURL        https://github.com/organvm/a-i-chat--exporter
+// @supportURL         https://github.com/organvm/a-i-chat--exporter/issues
 // @match              https://chat.openai.com/
 // @match              https://chat.openai.com/?model=*
 // @match              https://chat.openai.com/?ce_license_key=*
@@ -667,7 +669,8 @@
 		"https://chat.openai.com": "https://chat.openai.com/backend-api",
 		"https://chatgpt.com": "https://chatgpt.com/backend-api",
 		"https://new.oaifree.com": "https://new.oaifree.com/backend-api",
-		"https://gemini.google.com": "https://gemini.google.com"
+		"https://gemini.google.com": "https://gemini.google.com",
+		"https://claude.ai": "https://claude.ai/api"
 	};
 	var baseUrl = new URL(location.href).origin;
 	var apiUrl = API_MAPPING[baseUrl] ?? baseUrl;
@@ -2584,8 +2587,7 @@
 				"DEV": false,
 				"MODE": "production",
 				"PROD": true,
-				"SSR": false,
-				"VITE_EXPORTER_PUBLIC_JWK": "{\"key_ops\":[\"verify\"],\"ext\":true,\"kty\":\"EC\",\"x\":\"JJ3bVBZP3OEXXQg9ENBUXfB9wtrYh0llWjU4HTNwbvM\",\"y\":\"RwotkzzrDYc06ZrxOyCgkcFXAb_Ip1F06SyGO1N3-II\",\"crv\":\"P-256\"}"
+				"SSR": false
 			};
 			if (env && env.DEV === false) return "info";
 		} catch {}
@@ -2752,7 +2754,7 @@
 		const contentType = (image.headers.get("content-type") ?? blob.type) || "application/octet-stream";
 		return base64.replace(/^data:.*?;/, `data:${contentType};`);
 	}
-	function isRecord(value) {
+	function isRecord$1(value) {
 		return typeof value === "object" && value !== null && !Array.isArray(value);
 	}
 	function isJsonValue(value) {
@@ -2768,10 +2770,10 @@
 		}
 	}
 	function isJsonObject(value) {
-		return isRecord(value) && Object.values(value).every(isJsonValue);
+		return isRecord$1(value) && Object.values(value).every(isJsonValue);
 	}
 	function isFileServiceImageAssetPointer(part) {
-		return isRecord(part) && part.content_type === "image_asset_pointer" && typeof part.asset_pointer === "string" && part.asset_pointer.startsWith("file-service://");
+		return isRecord$1(part) && part.content_type === "image_asset_pointer" && typeof part.asset_pointer === "string" && part.asset_pointer.startsWith("file-service://");
 	}
 	function isNonEmptyString(value) {
 		return typeof value === "string" && value.length > 0;
@@ -2780,40 +2782,40 @@
 		return Array.isArray(value) && value.every((item) => typeof item === "string");
 	}
 	function isApiFileDownload(value) {
-		if (!isRecord(value) || typeof value.status !== "string") return false;
+		if (!isRecord$1(value) || typeof value.status !== "string") return false;
 		if (value.status === "success") return typeof value.download_url === "string" && typeof value.file_name === "string" && isJsonObject(value.metadata) && isNonEmptyString(value.creation_time);
 		if (value.status === "error") return typeof value.error_code === "string" && (value.error_message === null || typeof value.error_message === "string");
 		return false;
 	}
 	function isApiConversationItem(value) {
-		return isRecord(value) && typeof value.id === "string" && typeof value.title === "string" && typeof value.create_time === "number";
+		return isRecord$1(value) && typeof value.id === "string" && typeof value.title === "string" && typeof value.create_time === "number";
 	}
 	function isApiConversations(value) {
-		return isRecord(value) && typeof value.has_missing_conversations === "boolean" && typeof value.limit === "number" && typeof value.offset === "number" && (value.total === null || typeof value.total === "number") && Array.isArray(value.items) && value.items.every(isApiConversationItem);
+		return isRecord$1(value) && typeof value.has_missing_conversations === "boolean" && typeof value.limit === "number" && typeof value.offset === "number" && (value.total === null || typeof value.total === "number") && Array.isArray(value.items) && value.items.every(isApiConversationItem);
 	}
 	function isApiConversation(value) {
-		return isRecord(value) && typeof value.create_time === "number" && typeof value.current_node === "string" && isRecord(value.mapping) && Array.isArray(value.moderation_results) && typeof value.title === "string" && typeof value.is_archived === "boolean" && typeof value.update_time === "number";
+		return isRecord$1(value) && typeof value.create_time === "number" && typeof value.current_node === "string" && isRecord$1(value.mapping) && Array.isArray(value.moderation_results) && typeof value.title === "string" && typeof value.is_archived === "boolean" && typeof value.update_time === "number";
 	}
 	function isApiProjectConversations(value) {
-		return isRecord(value) && Array.isArray(value.items) && (value.cursor === void 0 || value.cursor === null || typeof value.cursor === "number") && value.items.every(isApiConversationItem);
+		return isRecord$1(value) && Array.isArray(value.items) && (value.cursor === void 0 || value.cursor === null || typeof value.cursor === "number") && value.items.every(isApiConversationItem);
 	}
 	function isApiProjectsResponse(value) {
-		return isRecord(value) && Array.isArray(value.items) && value.items.every(isApiGizmo);
+		return isRecord$1(value) && Array.isArray(value.items) && value.items.every(isApiGizmo);
 	}
 	function isApiGizmo(value) {
-		return isRecord(value) && isRecord(value.gizmo) && isRecord(value.gizmo.gizmo) && typeof value.gizmo.gizmo.id === "string" && typeof value.gizmo.gizmo.organization_id === "string" && isRecord(value.gizmo.gizmo.display) && typeof value.gizmo.gizmo.display.name === "string" && typeof value.gizmo.gizmo.display.description === "string";
+		return isRecord$1(value) && isRecord$1(value.gizmo) && isRecord$1(value.gizmo.gizmo) && typeof value.gizmo.gizmo.id === "string" && typeof value.gizmo.gizmo.organization_id === "string" && isRecord$1(value.gizmo.gizmo.display) && typeof value.gizmo.gizmo.display.name === "string" && typeof value.gizmo.gizmo.display.description === "string";
 	}
 	function isApiSession(value) {
-		return isRecord(value) && typeof value.accessToken === "string";
+		return isRecord$1(value) && typeof value.accessToken === "string";
 	}
 	function isApiAccountsCheckAccount(value) {
-		return isRecord(value) && isRecord(value.account) && (value.account.account_id === null || typeof value.account.account_id === "string");
+		return isRecord$1(value) && isRecord$1(value.account) && (value.account.account_id === null || typeof value.account.account_id === "string");
 	}
 	function isApiAccountsCheck(value) {
-		return isRecord(value) && isRecord(value.accounts) && Object.values(value.accounts).every(isApiAccountsCheckAccount) && isStringArray(value.account_ordering);
+		return isRecord$1(value) && isRecord$1(value.accounts) && Object.values(value.accounts).every(isApiAccountsCheckAccount) && isStringArray(value.account_ordering);
 	}
 	function isApiSuccessResponse(value) {
-		return isRecord(value) && typeof value.success === "boolean";
+		return isRecord$1(value) && typeof value.success === "boolean";
 	}
 	async function replaceImageAssets(conversation) {
 		const imageAssets = Object.values(conversation.mapping).flatMap((node) => {
@@ -3202,33 +3204,344 @@
 		deleteConversation,
 		processConversation
 	};
-	var NOT_IMPLEMENTED = "NotImplemented: claude export needs live session mapping";
+	var CLAUDE_ORIGIN = "https://claude.ai";
+	var CLAUDE_DEFAULT_TITLE = "Claude Conversation";
+	var cachedOrganizationId = null;
 	var claudeProvider = {
 		id: "claude",
 		label: "Claude",
+		features: {
+			bulkExport: false,
+			archive: false,
+			delete: false,
+			projects: false,
+			timestamps: true
+		},
 		matchHost: (host) => host.includes("claude.ai"),
-		getCurrentChatId() {
-			throw new Error(NOT_IMPLEMENTED);
-		},
-		fetchConversation(_id, _replaceAssets) {
-			throw new Error(NOT_IMPLEMENTED);
-		},
-		fetchProjects() {
-			throw new Error(NOT_IMPLEMENTED);
-		},
-		fetchAllConversations(_project, _max) {
-			throw new Error(NOT_IMPLEMENTED);
-		},
-		archiveConversation(_id) {
-			throw new Error(NOT_IMPLEMENTED);
-		},
-		deleteConversation(_id) {
-			throw new Error(NOT_IMPLEMENTED);
-		},
-		processConversation(_conversation) {
-			throw new Error(NOT_IMPLEMENTED);
-		}
+		getChatIdFromUrl: () => getClaudeChatIdFromUrl(),
+		getCurrentChatId: getCurrentClaudeChatId,
+		fetchConversation: (chatId, replaceAssets) => fetchClaudeConversation(chatId, replaceAssets),
+		processConversation: (conv) => processClaudeConversation(conv),
+		checkIfConversationStarted: checkIfClaudeConversationStarted,
+		fetchAllConversations: fetchAllClaudeConversations,
+		fetchProjects: async () => [],
+		archiveConversation: async () => false,
+		deleteConversation: async () => false
 	};
+	function isClaudeConversationExport(value) {
+		return isRecord(value) && value.provider === "claude" && isRecord(value.rawConversation) && isRecord(value.conversation);
+	}
+	function getClaudeChatIdFromUrl(pathname = globalThis.location?.pathname ?? "") {
+		const projectMatch = pathname.match(/^\/project\/[^/]+\/chat\/([^/?#]+)/i);
+		if (projectMatch) return decodeURIComponent(projectMatch[1]);
+		const chatMatch = pathname.match(/^\/chat\/([^/?#]+)/i);
+		if (chatMatch) return decodeURIComponent(chatMatch[1]);
+		return null;
+	}
+	async function getCurrentClaudeChatId() {
+		const chatId = getClaudeChatIdFromUrl();
+		if (chatId) return chatId;
+		const conversations = await fetchAllClaudeConversations(null, 1);
+		if (conversations.length > 0) return conversations[0].id;
+		throw new Error("No Claude chat id found.");
+	}
+	function checkIfClaudeConversationStarted() {
+		if (getClaudeChatIdFromUrl()) return true;
+		if (typeof document === "undefined") return false;
+		return !!document.querySelector([
+			"[data-testid*=\"message\"]",
+			"[data-testid*=\"conversation\"]",
+			"[data-is-streaming]",
+			"main [role=\"article\"]"
+		].join(","));
+	}
+	async function fetchClaudeConversation(chatId, _shouldReplaceAssets) {
+		const organizationId = await getClaudeOrganizationId();
+		return wrapClaudeConversation(normalizeClaudeConversationResponse(await fetchClaudeApi(`/api/organizations/${encodeURIComponent(organizationId)}/chat_conversations/${encodeURIComponent(chatId)}`)), chatId);
+	}
+	async function fetchAllClaudeConversations(_project = null, maxConversations = 1e3) {
+		const organizationId = await getClaudeOrganizationId();
+		const conversations = [];
+		const limit = 50;
+		let offset = 0;
+		while (conversations.length < maxConversations) {
+			const params = new URLSearchParams({
+				limit: String(Math.min(limit, maxConversations - conversations.length)),
+				offset: String(offset)
+			});
+			const { items, total } = extractClaudeConversationList(await fetchClaudeApi(`/api/organizations/${encodeURIComponent(organizationId)}/chat_conversations?${params.toString()}`));
+			conversations.push(...items.map(mapClaudeConversationItem));
+			if (items.length === 0) break;
+			if (typeof total === "number" && conversations.length >= total) break;
+			if (items.length < limit) break;
+			offset += items.length;
+		}
+		return conversations.slice(0, maxConversations);
+	}
+	function wrapClaudeConversation(conversation, fallbackId) {
+		const result = processClaudeConversation(conversation, fallbackId);
+		return {
+			id: result.id,
+			provider: "claude",
+			rawConversation: conversation,
+			conversation: result
+		};
+	}
+	function processClaudeConversation(conversationOrExport, fallbackId) {
+		if (isClaudeConversationExport(conversationOrExport)) return conversationOrExport.conversation;
+		const conversation = conversationOrExport;
+		const id = firstString(conversation.uuid, conversation.id, fallbackId) || "claude-conversation";
+		const chatMessages = arrayFrom(conversation.chat_messages);
+		const messages = chatMessages.length > 0 ? chatMessages : arrayFrom(conversation.messages);
+		const modelSlug = extractClaudeModelSlug(conversation, messages);
+		const model = formatClaudeModel(modelSlug);
+		const createTime = toUnixTime(conversation.created_at) || firstMessageTime(messages) || nowUnixTime();
+		const updateTime = toUnixTime(conversation.updated_at) || lastMessageTime(messages) || createTime;
+		const title = firstString(conversation.name, conversation.title, conversation.summary) || deriveTitleFromMessages(messages) || CLAUDE_DEFAULT_TITLE;
+		const projectId = firstString(conversation.project_uuid, conversation.project?.uuid, conversation.project?.id, stringFromRecord(conversation.settings, "project_uuid"), stringFromRecord(conversation.settings, "project_id"));
+		const projectName = firstString(conversation.project?.name, stringFromRecord(conversation.settings, "project_name"));
+		return {
+			id,
+			title,
+			modelSlug,
+			model,
+			createTime,
+			updateTime,
+			conversationNodes: mapClaudeMessages(messages, modelSlug),
+			projectId: projectId ?? void 0,
+			projectName: projectName ?? void 0,
+			sourceUrl: buildClaudeSourceUrl(id, projectId ?? void 0)
+		};
+	}
+	function mapClaudeMessages(messages, modelSlug) {
+		const ids = messages.map((message, index) => getClaudeMessageId(message, index));
+		return messages.map((message, index) => {
+			const id = ids[index];
+			const parent = ids[index - 1];
+			const next = ids[index + 1];
+			return {
+				id,
+				parent,
+				children: next ? [next] : [],
+				message: mapClaudeMessage(message, id, modelSlug)
+			};
+		});
+	}
+	function mapClaudeMessage(message, id, modelSlug) {
+		const role = mapClaudeRole(message.sender ?? message.author ?? message.role);
+		const text = extractClaudeMessageText(message);
+		const createTime = toUnixTime(message.created_at);
+		const updateTime = toUnixTime(message.updated_at);
+		return {
+			id,
+			author: {
+				role,
+				name: role === "assistant" ? "Claude" : void 0,
+				metadata: {}
+			},
+			content: {
+				content_type: "text",
+				parts: [text]
+			},
+			create_time: createTime || void 0,
+			update_time: updateTime || void 0,
+			metadata: { model_slug: firstString(message.model, modelSlug) || "claude" },
+			recipient: "all",
+			status: "finished_successfully",
+			end_turn: true,
+			weight: 1
+		};
+	}
+	function extractClaudeMessageText(message) {
+		return [extractClaudeContentText(message.content) || message.text || "", ...[...arrayFrom(message.attachments), ...arrayFrom(message.files)].map(formatClaudeAttachment).filter(nonEmpty)].filter(nonEmpty).join("\n\n");
+	}
+	function extractClaudeContentText(content) {
+		if (typeof content === "string") return content;
+		if (Array.isArray(content)) return content.map(formatClaudeContentBlock).filter(nonEmpty).join("\n\n");
+		if (isRecord(content)) return formatClaudeContentBlock(content) ?? "";
+		return "";
+	}
+	function formatClaudeContentBlock(block) {
+		if (typeof block === "string") return block;
+		if (!isRecord(block)) return null;
+		const type = typeof block.type === "string" ? block.type : "";
+		if (type === "thinking") return null;
+		const text = firstString(stringFromRecord(block, "text"), stringFromRecord(block, "summary"), stringFromRecord(block, "message"));
+		if (text) return text;
+		if (type === "tool_use") return `Tool use: ${firstString(stringFromRecord(block, "name"), "tool")}\n\`\`\`json\n${stringifyUnknown(block.input)}\n\`\`\``;
+		if (type === "tool_result") return `Tool result:\n\`\`\`\n${stringifyUnknown(block.content)}\n\`\`\``;
+		if (type === "image") return "[image]";
+		if ("content" in block) return stringifyUnknown(block.content);
+		if ("source" in block) return stringifyUnknown(block.source);
+		return null;
+	}
+	function formatClaudeAttachment(attachment) {
+		const name = firstString(attachment.file_name, attachment.filename, attachment.name, attachment.title, "attachment");
+		const content = firstString(attachment.extracted_content, typeof attachment.content === "string" ? attachment.content : void 0, attachment.text);
+		if (content) return `Attachment: ${name}\n${content}`;
+		return name === "attachment" ? null : `Attachment: ${name}`;
+	}
+	async function getClaudeOrganizationId() {
+		if (cachedOrganizationId) return cachedOrganizationId;
+		const pathOrganizationId = getClaudeOrganizationIdFromPath();
+		if (pathOrganizationId) {
+			cachedOrganizationId = pathOrganizationId;
+			return cachedOrganizationId;
+		}
+		const organizations = normalizeClaudeOrganizations(await fetchClaudeApi("/api/organizations"));
+		const organization = organizations.find((item) => item.active) ?? organizations[0];
+		const organizationId = firstString(organization?.uuid, organization?.id);
+		if (!organizationId) throw new Error("No Claude organization id found.");
+		cachedOrganizationId = organizationId;
+		return cachedOrganizationId;
+	}
+	function getClaudeOrganizationIdFromPath(pathname = globalThis.location?.pathname ?? "") {
+		const match = pathname.match(/^\/organizations\/([^/]+)/i);
+		if (match) return decodeURIComponent(match[1]);
+		return null;
+	}
+	async function fetchClaudeApi(path, options) {
+		const url = new URL(path, getClaudeOrigin());
+		const headers = new Headers(options?.headers);
+		if (!headers.has("Accept")) headers.set("Accept", "application/json");
+		const response = await fetch(url, {
+			...options,
+			credentials: "include",
+			headers
+		});
+		if (!response.ok) throw new Error(response.statusText || `Claude API request failed: ${response.status}`);
+		return response.json();
+	}
+	function extractClaudeConversationList(response) {
+		if (Array.isArray(response)) return {
+			items: response.filter(isRecord),
+			total: null
+		};
+		if (!isRecord(response)) return {
+			items: [],
+			total: null
+		};
+		const rawItems = firstArray(response.conversations, response.chat_conversations, response.items, response.data);
+		const total = typeof response.total === "number" ? response.total : typeof response.count === "number" ? response.count : null;
+		return {
+			items: rawItems.filter(isRecord),
+			total
+		};
+	}
+	function mapClaudeConversationItem(item) {
+		return {
+			id: firstString(item.uuid, item.id) || "claude-conversation",
+			title: firstString(item.name, item.title, item.summary) || CLAUDE_DEFAULT_TITLE,
+			create_time: toUnixTime(item.created_at) || 0
+		};
+	}
+	function normalizeClaudeOrganizations(response) {
+		if (Array.isArray(response)) return response.filter(isRecord);
+		if (!isRecord(response)) return [];
+		if (stringFromRecord(response, "uuid") || stringFromRecord(response, "id")) return [response];
+		return firstArray(response.organizations, response.items, response.data).filter(isRecord);
+	}
+	function normalizeClaudeConversationResponse(response) {
+		if (!isRecord(response)) throw new Error("Invalid Claude conversation response.");
+		return firstRecord(response.conversation, response.chat_conversation, response.data) ?? response;
+	}
+	function extractClaudeModelSlug(conversation, messages) {
+		return firstString(conversation.model, conversation.current_model, stringFromRecord(conversation.settings, "model"), stringFromRecord(conversation.settings, "current_model"), messages.find((message) => message.model)?.model, "claude") || "claude";
+	}
+	function formatClaudeModel(modelSlug) {
+		if (!modelSlug || modelSlug === "claude") return "Claude";
+		const match = [
+			[/claude-?opus-?4-?1/i, "Claude Opus 4.1"],
+			[/claude-?opus-?4/i, "Claude Opus 4"],
+			[/claude-?sonnet-?4/i, "Claude Sonnet 4"],
+			[/claude-?3-?7-?sonnet/i, "Claude 3.7 Sonnet"],
+			[/claude-?3-?5-?sonnet/i, "Claude 3.5 Sonnet"],
+			[/claude-?3-?5-?haiku/i, "Claude 3.5 Haiku"],
+			[/claude-?3-?opus/i, "Claude 3 Opus"],
+			[/claude-?3-?sonnet/i, "Claude 3 Sonnet"],
+			[/claude-?3-?haiku/i, "Claude 3 Haiku"]
+		].find(([regex]) => regex.test(modelSlug));
+		if (match) return match[1];
+		return modelSlug.replace(/^claude[-_\s]*/i, "Claude ").replace(/[-_]20\d{6}$/, "").replace(/[-_]/g, " ").replace(/\s+/g, " ").trim();
+	}
+	function mapClaudeRole(role) {
+		switch (role) {
+			case "human":
+			case "user": return "user";
+			case "assistant":
+			case "claude": return "assistant";
+			case "system": return "system";
+			case "tool": return "tool";
+			default: return "assistant";
+		}
+	}
+	function getClaudeMessageId(message, index) {
+		return firstString(message.uuid, message.id) || `claude-message-${index}`;
+	}
+	function deriveTitleFromMessages(messages) {
+		const firstUserMessage = messages.find((message) => mapClaudeRole(message.sender ?? message.author ?? message.role) === "user");
+		const text = firstUserMessage ? extractClaudeMessageText(firstUserMessage).trim() : "";
+		if (!text) return "";
+		return text.split(/\s+/).slice(0, 10).join(" ");
+	}
+	function firstMessageTime(messages) {
+		return toUnixTime(messages[0]?.created_at);
+	}
+	function lastMessageTime(messages) {
+		return toUnixTime(messages[messages.length - 1]?.updated_at) || toUnixTime(messages[messages.length - 1]?.created_at);
+	}
+	function buildClaudeSourceUrl(id, projectId) {
+		const origin = getClaudeOrigin();
+		if (projectId) return `${origin}/project/${encodeURIComponent(projectId)}/chat/${encodeURIComponent(id)}`;
+		return `${origin}/chat/${encodeURIComponent(id)}`;
+	}
+	function getClaudeOrigin() {
+		if (globalThis.location?.hostname === "claude.ai") return globalThis.location.origin;
+		return CLAUDE_ORIGIN;
+	}
+	function toUnixTime(value) {
+		if (typeof value === "number" && Number.isFinite(value)) return Math.floor(value > 1e11 ? value / 1e3 : value);
+		if (typeof value === "string" && value) {
+			const parsed = Date.parse(value);
+			if (!Number.isNaN(parsed)) return Math.floor(parsed / 1e3);
+		}
+		return 0;
+	}
+	function nowUnixTime() {
+		return Math.floor(Date.now() / 1e3);
+	}
+	function firstString(...values) {
+		return values.find((value) => typeof value === "string" && value.length > 0);
+	}
+	function stringFromRecord(record, key) {
+		if (!isRecord(record)) return void 0;
+		const value = record[key];
+		return typeof value === "string" ? value : void 0;
+	}
+	function firstArray(...values) {
+		return values.find(Array.isArray) ?? [];
+	}
+	function firstRecord(...values) {
+		return values.find(isRecord);
+	}
+	function arrayFrom(value) {
+		return Array.isArray(value) ? value : [];
+	}
+	function isRecord(value) {
+		return typeof value === "object" && value !== null;
+	}
+	function nonEmpty(value) {
+		return typeof value === "string" && value.trim().length > 0;
+	}
+	function stringifyUnknown(value) {
+		if (typeof value === "string") return value;
+		if (value === void 0 || value === null) return "";
+		try {
+			return JSON.stringify(value, null, 2);
+		} catch {
+			return String(value);
+		}
+	}
 	var GEMINI_CURRENT_CHAT_ID = "gemini-current";
 	var GEMINI_MODEL_SLUG = "gemini";
 	var geminiDefaultAvatar = "data:image/svg+xml,%3Csvg%20stroke%3D%22currentColor%22%20fill%3D%22none%22%20stroke-width%3D%221.5%22%20viewBox%3D%22-6%20-6%2036%2036%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20style%3D%22color%3A%20white%3B%20background%3A%20%234285f4%3B%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M20%2021v-2a4%204%200%200%200-4-4H8a4%204%200%200%200-4%204v2%22%3E%3C%2Fpath%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%227%22%20r%3D%224%22%3E%3C%2Fcircle%3E%3C%2Fsvg%3E";
@@ -22541,7 +22854,7 @@
 		};
 	}
 	function resolveMintPublicKey() {
-		const raw = "{\"key_ops\":[\"verify\"],\"ext\":true,\"kty\":\"EC\",\"x\":\"JJ3bVBZP3OEXXQg9ENBUXfB9wtrYh0llWjU4HTNwbvM\",\"y\":\"RwotkzzrDYc06ZrxOyCgkcFXAb_Ip1F06SyGO1N3-II\",\"crv\":\"P-256\"}".trim();
+		const raw = "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"JJ3bVBZP3OEXXQg9ENBUXfB9wtrYh0llWjU4HTNwbvM\",\"y\":\"RwotkzzrDYc06ZrxOyCgkcFXAb_Ip1F06SyGO1N3-II\",\"key_ops\":[\"verify\"],\"ext\":true}".trim();
 		try {
 			const jwk = JSON.parse(raw);
 			return jwk && typeof jwk === "object" && typeof jwk.kty === "string" ? jwk : null;
@@ -22550,7 +22863,7 @@
 		}
 	}
 	var EXPORTER_PUBLIC_KEY_JWK = resolveMintPublicKey();
-	var MINT_CHECKOUT_URL_INPUT = "https://mint.4444j99.dev".trim();
+	var MINT_CHECKOUT_URL_INPUT = "https://mint.4444j99.dev/".trim();
 	function normalizeCheckoutInputUrl(value) {
 		const trimmed = value.trim();
 		if (!trimmed) return "";

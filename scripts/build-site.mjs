@@ -28,16 +28,21 @@ const forceBuild = process.argv.includes('--build')
 const requireProCheckout = process.argv.includes('--require-pro-checkout')
   || isTruthyEnv(process.env.REQUIRE_PRO_CHECKOUT)
 // The landing page's Buy Pro CTA points at MONETA's own checkout page — the
-// seller's sovereign Bitcoin mint, no third-party processor.
+// seller's sovereign Bitcoin mint, no third-party processor. Both values are
+// PUBLIC (storefront + /pubkey served openly), so the live production mint is the
+// factory default and every build ships armed; an env override still wins.
+const MINT_CHECKOUT_URL_DEFAULT = 'https://mint.4444j99.dev/'
+const MINT_PUBLIC_JWK_DEFAULT
+  = '{"kty":"EC","crv":"P-256","x":"JJ3bVBZP3OEXXQg9ENBUXfB9wtrYh0llWjU4HTNwbvM","y":"RwotkzzrDYc06ZrxOyCgkcFXAb_Ip1F06SyGO1N3-II","key_ops":["verify"],"ext":true}'
 const checkoutUrlInput =
   process.env.MINT_CHECKOUT_URL
   || process.env.VITE_MINT_CHECKOUT_URL
-  || ''
+  || MINT_CHECKOUT_URL_DEFAULT
 const mintPublicJwk =
   (process.env.MINT_PUBLIC_JWK
   || process.env.VITE_EXPORTER_PUBLIC_JWK
   || process.env.VITE_MINT_PUBLIC_JWK
-  || '').trim()
+  || MINT_PUBLIC_JWK_DEFAULT).trim()
 const proCheckoutUrl = normalizeCheckoutInputUrl(checkoutUrlInput)
 
 function log(msg) {
