@@ -476,6 +476,12 @@ Contributions are welcome. See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup in
 
 ---
 
+## Contact
+
+Questions or feedback? Reach out via [GitHub](https://github.com/4444J99).
+
+---
+
 ## License
 
 [MIT](./LICENSE) -- Copyright (c) 2022-Present Pionxzh
